@@ -1,6 +1,5 @@
 package com.example.lokaloka.domain.entity;
 
-import com.example.lokaloka.domain.enumeration.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,25 +7,23 @@ import lombok.experimental.FieldDefaults;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "itineraries")
+@Table(name = "likes")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Itinerary {
+public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
-    String title;
-    String description;
-    Double price;
-    Timestamp created_at;
-    Timestamp updated_at;
+    private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false) // Khóa ngoại ánh xạ đến bảng "users"
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     User user;
 
-    Status status;
+    Timestamp created_at;
 }
