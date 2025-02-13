@@ -57,38 +57,49 @@ public class GeminiService {
 
     private String createBasePrompt(String userPrompt) {
         return String.join("\n",
-                "1. Dữ liệu phải hoàn toàn bằng Tiếng Việt.",
-                "2. Cung cấp thông tin chính xác, không dư thừa.",
-                "3. Liệt kê địa điểm với tọa độ chính xác 100%.",
-                "4. Tôi đã đến địa điểm này, mang theo xe máy và tự chi tiền xăng.",
+                "1. The response **must** be in **pure JSON format** with **no extra text**.",
+                "2. **Do NOT include any explanation**, just return the JSON object.",
+                "3. The JSON must be **complete and valid** (no missing brackets).",
+                "4. If the response is too long, **split into multiple JSON arrays** but keep valid format.",
+                "5. Ensure all keys have correct closing quotes and no missing commas.",
+                "6. Use **standard JSON syntax** with proper nesting and spacing.",
+                "7. Double-check before sending the response to make sure JSON is valid.",
                 "",
                 userPrompt,
                 "",
-                "Hãy trả về kết quả dưới dạng JSON với cấu trúc sau:",
+                "Return the result in the **exact** following JSON structure:",
                 "{",
-                "  \"overview\": \"string mô tả tổng quan\",",
-                "  \"response\": [",
-                "    {",
-                "      \"recipeName\": \"string\",",
-                "      \"title\": \"string\",",
-                "      \"description\": \"string\",",
-                "      \"day\": \"string\",",
-                "      \"price\": \"string\",",
-                "      \"activities\": [",
-                "        {",
-                "          \"name\": \"string\",",
-                "          \"start_time\": \"string\",",
-                "          \"end_time\": \"string\",",
-                "          \"location\": \"string\",",
-                "          \"price\": \"string\",",
-                "          \"description\": \"string\",",
-                "          \"image\": \"string\",",
-                "          \"latitude\": \"string\",",
-                "          \"longitude\": \"string\"",
-                "        }",
-                "      ]",
-                "    }",
-                "  ]",
+                "  \"itinerary\": {",
+                "    \"title\": \"string\",",
+                "    \"description\": \"string\",",
+                "    \"price\": \"double\",",
+                "    \"locations\": [",
+                "      {",
+                "        \"name\": \"string\",",
+                "        \"day\": \"number\",",
+                "        \"description\": \"string\",",
+                "        \"flag\": \"boolean\",",
+                "        \"time_start\": \"datetime\",",
+                "        \"time_finish\": \"datetime\",",
+                "        \"time_reminder\": \"string\",",
+                "        \"latitude\": \"double\",",
+                "        \"longitude\": \"double\",",
+                "        \"image_url\": \"string\",",
+                "        \"culture\": \"string\",",
+                "        \"recommended_time\": \"string\",",
+                "        \"activities\": [",
+                "          {",
+                "            \"name\": \"string\",",
+                "            \"description\": \"string\",",
+                "            \"activities_possible\": \"string\",",
+                "            \"price\": \"double\",",
+                "            \"rule\": \"string\",",
+                "            \"recommend\": \"json\"",
+                "          }",
+                "        ]",
+                "      }",
+                "    ]",
+                "  }",
                 "}"
         );
     }
@@ -98,16 +109,16 @@ public class GeminiService {
         config.put("temperature", 1.0);
         config.put("topP", 0.95);
         config.put("topK", 40);
-        config.put("maxOutputTokens", 3000);
+        config.put("maxOutputTokens", 20000); // Tăng giới hạn tokens
         return config;
     }
+
 
     private HttpEntity<Map<String, Object>> createHttpEntity(Map<String, Object> requestBody) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         return new HttpEntity<>(requestBody, headers);
     }
-
     private Map<String, Object> processResponse(ResponseEntity<Map> response) {
         try {
             if (response.getBody() != null && response.getBody().containsKey("candidates")) {
@@ -120,16 +131,39 @@ public class GeminiService {
                             List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
                             if (!parts.isEmpty() && parts.get(0).containsKey("text")) {
                                 String jsonString = (String) parts.get(0).get("text");
-                                // Chuyển đổi JSON string thành Map
+
+                                // 🛠 In JSON để kiểm tra
+                                System.out.println("🚀 RAW JSON từ Gemini:\n" + jsonString);
+
+                                // Kiểm tra JSON hợp lệ
+                                jsonString = fixJson(jsonString);
                                 return objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
                             }
                         }
                     }
                 }
             }
-            return Map.of("error", "Không có kết quả");
+            return Map.of("error", "Không có kết quả hợp lệ.");
         } catch (Exception e) {
-            return Map.of("error", "Lỗi xử lý response: " + e.getMessage());
+            return Map.of("error", "Lỗi khi xử lý response: " + e.getMessage());
         }
     }
+    private String fixJson(String json) {
+        try {
+            json = json.trim();
+
+            // 🛠 Nếu thiếu dấu đóng, ta thêm vào
+            if (!json.endsWith("}") && !json.endsWith("]")) {
+                json += "}";
+            }
+
+            // 🛠 Kiểm tra JSON hợp lệ
+            objectMapper.readTree(json);
+            return json;
+        } catch (Exception e) {
+            return json; // Nếu lỗi, vẫn trả về JSON gốc
+        }
+    }
+
+
 }
