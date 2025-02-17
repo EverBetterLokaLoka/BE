@@ -1,5 +1,6 @@
 package com.example.lokaloka.controller;
 
+import com.example.lokaloka.domain.dto.resdto.ItineraryResDTO;
 import com.example.lokaloka.domain.entity.Itinerary;
 import com.example.lokaloka.service.impl.GeminiService;
 import com.example.lokaloka.service.impl.ItineraryService;
@@ -56,10 +57,58 @@ public class ItineraryRestController {
 
     @GetMapping
     public ResponseEntity<?> getItineraries() {
-        return ResponseEntity.ok(ResponseData.builder().code(SuccessCode.GET_SUCCESSFUL.getCode()).message(SuccessCode.GET_SUCCESSFUL.getMessage()).data(itineraryService.getAllItineraries()).build());
+        return ResponseEntity.ok(ResponseData.builder()
+                .code(SuccessCode.GET_SUCCESSFUL.getCode())
+                .message(SuccessCode.GET_SUCCESSFUL.getMessage())
+                .data(itineraryService.getAllItineraries())
+                .build());
     }
-//    @PostMapping
-//    public ResponseEntity<?> addItinerary(@RequestBody Itinerary itinerary) {
-//
-//    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getItineraryById(@PathVariable Long id) {
+        ItineraryResDTO itinerary = itineraryService.getItineraryById(id);
+        return ResponseEntity.ok(ResponseData.builder()
+                .code(SuccessCode.GET_SUCCESSFUL.getCode())
+                .message(SuccessCode.GET_SUCCESSFUL.getMessage())
+                .data(itinerary)
+                .build());
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createItinerary(@RequestBody ItineraryResDTO itineraryResDTO) {
+        ItineraryResDTO createdItinerary = itineraryService.createItinerary(itineraryResDTO);
+        return ResponseEntity.ok(ResponseData.builder()
+                .code(SuccessCode.GET_SUCCESS.getCode())
+                .message(SuccessCode.GET_SUCCESS.getMessage())
+                .data(createdItinerary)
+                .build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateItinerary(@PathVariable Long id, @RequestBody ItineraryResDTO itineraryResDTO) {
+        itineraryResDTO.setId(id);
+        ItineraryResDTO updatedItinerary = itineraryService.updateItinerary(itineraryResDTO);
+        return ResponseEntity.ok(ResponseData.builder()
+                .code(SuccessCode.UPDATE_SUCCESSFUL.getCode())
+                .message(SuccessCode.UPDATE_SUCCESSFUL.getMessage())
+                .data(updatedItinerary)
+                .build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteItinerary(@PathVariable Long id) {
+        itineraryService.deleteItineraryById(id);
+        return ResponseEntity.ok(ResponseData.builder()
+                .code(SuccessCode.DELETE_SUCCESSFUL.getCode())
+                .message(SuccessCode.DELETE_SUCCESSFUL.getMessage())
+                .data(null)
+                .build());
+    }
+
+    private ItineraryResDTO convertMapToItineraryDTO(Map<String, Object> itineraryData) {
+        // Implement the conversion logic from Map to ItineraryResDTO
+        // This should handle the nested structure of locations and activities
+        // You'll need to implement this based on your specific needs
+        return null; // Replace with actual implementation
+    }
 }

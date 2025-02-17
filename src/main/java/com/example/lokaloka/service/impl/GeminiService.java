@@ -21,7 +21,7 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro-exp-02-05:generateContent";
 
     public Map<String, Object> generateSchedule(String prompt) {
         try {
@@ -56,6 +56,7 @@ public class GeminiService {
     }
 
     private String createBasePrompt(String userPrompt) {
+        // Cập nhật base prompt sao cho đúng định dạng mà không chứa dấu backtick
         return String.join("\n",
                 "1. The response **must** be in **pure JSON format** with **no extra text**.",
                 "2. **Do NOT include any explanation**, just return the JSON object.",
@@ -67,34 +68,32 @@ public class GeminiService {
                 "",
                 userPrompt,
                 "",
-                "Return the result in the **exact** following JSON structure:",
+                "Return the result in this exact JSON format:",
                 "{",
                 "  \"itinerary\": {",
-                "    \"title\": \"string\",",
-                "    \"description\": \"string\",",
-                "    \"price\": \"double\",",
+                "    \"title\": \"Sample Title\",",
+                "    \"description\": \"Sample Description\",",
+                "    \"price\": 100.0,",
                 "    \"locations\": [",
                 "      {",
-                "        \"name\": \"string\",",
-                "        \"day\": \"number\",",
-                "        \"description\": \"string\",",
-                "        \"flag\": \"boolean\",",
-                "        \"time_start\": \"datetime\",",
-                "        \"time_finish\": \"datetime\",",
-                "        \"time_reminder\": \"string\",",
-                "        \"latitude\": \"double\",",
-                "        \"longitude\": \"double\",",
-                "        \"image_url\": \"string\",",
-                "        \"culture\": \"string\",",
-                "        \"recommended_time\": \"string\",",
+                "        \"name\": \"Sample Location\",",
+                "        \"day\": 1,",
+                "        \"description\": \"A great place to visit.\",",
+                "        \"flag\": false,",
+                "        \"time_start\": \"2025-02-13T08:00:00Z\",",
+                "        \"time_finish\": \"2025-02-13T10:00:00Z\",",
+                "        \"time_reminder\": \"30 minutes before\",",
+                "        \"culture\": \"French\",",
+                "        \"recommended_time\": \"Morning\",",
+                "        \"price\": \"30.0\",",
                 "        \"activities\": [",
                 "          {",
-                "            \"name\": \"string\",",
-                "            \"description\": \"string\",",
-                "            \"activities_possible\": \"string\",",
-                "            \"price\": \"double\",",
-                "            \"rule\": \"string\",",
-                "            \"recommend\": \"json\"",
+                "            \"name\": \"Visit Eiffel Tower\",",
+                "            \"description\": \"Enjoy a panoramic view of Paris.\",",
+                "            \"activities_possible\": \"Photography, Sightseeing\",",
+                "            \"price\": 25.0,",
+                "            \"rule\": \"No drones allowed\",",
+                "            \"recommend\": \"Highly recommended for Instagram enthusiasts and photography buffs.\"",
                 "          }",
                 "        ]",
                 "      }",
@@ -106,64 +105,90 @@ public class GeminiService {
 
     private Map<String, Object> createGenerationConfig() {
         Map<String, Object> config = new HashMap<>();
-        config.put("temperature", 1.0);
-        config.put("topP", 0.95);
-        config.put("topK", 40);
-        config.put("maxOutputTokens", 20000); // Tăng giới hạn tokens
+        config.put("temperature", 0.8); // Giảm temperature để trả về kết quả chính xác hơn
+        config.put("topP", 0.85);       // Giảm topP để trả về kết quả ổn định hơn
+        config.put("topK", 20);         // Giảm topK để mô hình ít sáng tạo hơn
+        config.put("maxOutputTokens", 15000); // Tăng giới hạn tokens (nếu cần thiết)
         return config;
     }
-
 
     private HttpEntity<Map<String, Object>> createHttpEntity(Map<String, Object> requestBody) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         return new HttpEntity<>(requestBody, headers);
     }
+
     private Map<String, Object> processResponse(ResponseEntity<Map> response) {
         try {
-            if (response.getBody() != null && response.getBody().containsKey("candidates")) {
-                List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.getBody().get("candidates");
-                if (!candidates.isEmpty()) {
-                    Map<String, Object> firstCandidate = candidates.get(0);
-                    if (firstCandidate.containsKey("content")) {
-                        Map<String, Object> content = (Map<String, Object>) firstCandidate.get("content");
-                        if (content.containsKey("parts")) {
-                            List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-                            if (!parts.isEmpty() && parts.get(0).containsKey("text")) {
-                                String jsonString = (String) parts.get(0).get("text");
+            System.out.println("🚀 RAW RESPONSE: " + response.getBody());
 
-                                // 🛠 In JSON để kiểm tra
-                                System.out.println("🚀 RAW JSON từ Gemini:\n" + jsonString);
-
-                                // Kiểm tra JSON hợp lệ
-                                jsonString = fixJson(jsonString);
-                                return objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-                            }
-                        }
-                    }
+            if (response.getBody() != null) {
+                // Kiểm tra các thông tin về token sử dụng (nếu có)
+                if (response.getBody().containsKey("usageMetadata")) {
+                    Map<String, Object> usageMetadata = (Map<String, Object>) response.getBody().get("usageMetadata");
+                    System.out.println("🔥 Tokens Used: " + usageMetadata);
                 }
+
+                if (response.getBody().containsKey("candidates")) {
+                    List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.getBody().get("candidates");
+
+                    if (!candidates.isEmpty()) {
+                        Map<String, Object> firstCandidate = candidates.get(0);
+                        if (firstCandidate.containsKey("content")) {
+                            Map<String, Object> content = (Map<String, Object>) firstCandidate.get("content");
+                            if (content.containsKey("parts")) {
+                                List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+                                if (!parts.isEmpty() && parts.get(0).containsKey("text")) {
+                                    String jsonString = (String) parts.get(0).get("text");
+
+                                    System.out.println("📌 JSON nhận từ API: " + jsonString);
+
+                                    // Loại bỏ tất cả dấu backtick và từ "json" trong chuỗi phản hồi
+                                    jsonString = jsonString.replace("`", "").replace("json", "").trim();
+
+                                    // Kiểm tra JSON hợp lệ
+                                    if (!isValidJson(jsonString)) {
+                                        return Map.of("error", "JSON không hợp lệ từ API", "raw_json", jsonString);
+                                    }
+
+                                    // Parse JSON thành object
+                                    try {
+                                        return objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
+                                    } catch (Exception jsonException) {
+                                        System.out.println("❌ Lỗi khi parse JSON: " + jsonException.getMessage());
+                                        return Map.of("error", "Lỗi parse JSON: " + jsonException.getMessage(), "raw_json", jsonString);
+                                    }
+                                } else {
+                                    return Map.of("error", "Không có dữ liệu text trong response.");
+                                }
+                            } else {
+                                return Map.of("error", "Không có 'parts' trong response.");
+                            }
+                        } else {
+                            return Map.of("error", "Không có 'content' trong candidate.");
+                        }
+                    } else {
+                        return Map.of("error", "Không có candidate trong response.");
+                    }
+                } else {
+                    return Map.of("error", "Không có candidates trong response.");
+                }
+            } else {
+                return Map.of("error", "Response từ API trống.");
             }
-            return Map.of("error", "Không có kết quả hợp lệ.");
         } catch (Exception e) {
+            System.out.println("❌ Lỗi khi xử lý response: " + e.getMessage());
             return Map.of("error", "Lỗi khi xử lý response: " + e.getMessage());
         }
     }
-    private String fixJson(String json) {
+
+    private boolean isValidJson(String json) {
         try {
-            json = json.trim();
-
-            // 🛠 Nếu thiếu dấu đóng, ta thêm vào
-            if (!json.endsWith("}") && !json.endsWith("]")) {
-                json += "}";
-            }
-
-            // 🛠 Kiểm tra JSON hợp lệ
             objectMapper.readTree(json);
-            return json;
+            return true;
         } catch (Exception e) {
-            return json; // Nếu lỗi, vẫn trả về JSON gốc
+            System.out.println("❌ JSON không hợp lệ: " + e.getMessage());
+            return false;
         }
     }
-
-
 }

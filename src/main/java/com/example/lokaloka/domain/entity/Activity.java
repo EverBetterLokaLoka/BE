@@ -32,8 +32,9 @@ public class Activity {
     private Double price;
     private String rule;
 
-    @Column(columnDefinition = "json")
-    private String recommend;  // Dùng JsonNode để lưu JSON
+    @Column(columnDefinition = "TEXT") // Dùng TEXT thay vì JSON để tránh lỗi
+    private String recommend;
+
     Timestamp created_at;
     Timestamp updated_at;
 }
