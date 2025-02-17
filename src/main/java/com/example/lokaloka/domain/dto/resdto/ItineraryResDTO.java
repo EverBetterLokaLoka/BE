@@ -21,6 +21,6 @@ public class ItineraryResDTO {
     Timestamp updated_at;
     Long userId;
     String userName;
-    Status status;
+    int status;
     List<LocationResDTO> locations;
 }

@@ -18,6 +18,6 @@ public class ItineraryReqDTO {
     Timestamp updated_at;
     Long userId;
     String userName;
-    Status status;
+    int status;
     List<LocationReqDTO> locations;
 }

@@ -36,6 +36,7 @@ public class ItineraryService implements IItineraryService {
 
     @Override
     public List<ItineraryResDTO> getAllItineraries() {
+        // get current user is Login
         User user = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Itinerary> itineraries = itineraryRepository.findByUser(user);
@@ -64,7 +65,7 @@ public class ItineraryService implements IItineraryService {
         itinerary.setDescription(itineraryDTO.getDescription());
         itinerary.setPrice(itineraryDTO.getPrice());
         itinerary.setUser(user);
-        itinerary.setStatus(itineraryDTO.getStatus());
+        itinerary.setStatus(0);
 
         Timestamp now = Timestamp.from(Instant.now());
         itinerary.setCreated_at(now);
@@ -146,6 +147,6 @@ public class ItineraryService implements IItineraryService {
         if (!itineraryRepository.existsById(id)) {
             throw new RuntimeException("Itinerary not found");
         }
-        itineraryRepository.deleteById(id);
+        itineraryRepository.updateStatus(id);
     }
 }

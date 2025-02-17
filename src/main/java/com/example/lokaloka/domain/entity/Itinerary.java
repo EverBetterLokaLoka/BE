@@ -34,5 +34,5 @@ public class Itinerary {
     @OneToMany(mappedBy = "itinerary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Location> locations;
 
-    Status status;
+    int status;
 }
