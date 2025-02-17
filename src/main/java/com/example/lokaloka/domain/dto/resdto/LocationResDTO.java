@@ -1,9 +1,7 @@
 package com.example.lokaloka.domain.dto.resdto;
 
-import com.example.lokaloka.domain.enumeration.Status;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -12,15 +10,19 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ItineraryResDTO {
+public class LocationResDTO {
     Long id;
-    String title;
+    String name;
     String description;
+    boolean flag;
+    String coordinate_x;
+    String coordinate_y;
+    String time_reminder;
+    Timestamp time_start;
+    Timestamp time_finish;
+    String culture;
+    String recommended_time;
     Double price;
-    Timestamp created_at;
-    Timestamp updated_at;
-    Long userId;
-    String userName;
-    int status;
-    List<LocationResDTO> locations;
+    Long itineraryId;
+    List<ActivityResDTO> activities;
 }

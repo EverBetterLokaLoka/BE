@@ -34,11 +34,8 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 	implementation('org.springframework.boot:spring-boot-starter-validation')
-//	implementation 'com.cloudinary:cloudinary:1.36.0'
-//	implementation 'com.github.cloudinary:cloudinary_java:v1.36.0'
-
-//	implementation 'com.cloudinary:cloudinary:1.0.14'
 	implementation 'com.cloudinary:cloudinary-http44:1.34.0'
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
 
 }
 

@@ -1,18 +1,15 @@
-package com.example.lokaloka.domain.dto.resdto;
+package com.example.lokaloka.domain.dto.reqdto;
 
 import com.example.lokaloka.domain.enumeration.Status;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.sql.Timestamp;
 import java.util.List;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class ItineraryResDTO {
+@Getter
+@Setter
+public class ItineraryReqDTO {
     Long id;
     String title;
     String description;
@@ -22,5 +19,5 @@ public class ItineraryResDTO {
     Long userId;
     String userName;
     int status;
-    List<LocationResDTO> locations;
+    List<LocationReqDTO> locations;
 }
