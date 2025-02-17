@@ -1,9 +1,12 @@
 package com.example.lokaloka.mapper;
 
+import com.example.lokaloka.domain.dto.resdto.ItineraryResDTO;
+import com.example.lokaloka.domain.entity.Itinerary;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {LocationMapper.class})
 public interface ItineraryMapper {
-    ItineraryMapper INSTANCE = Mappers.getMapper(ItineraryMapper.class);
+    ItineraryResDTO toItineraryResDTO(Itinerary itinerary);
+
 }
