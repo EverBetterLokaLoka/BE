@@ -13,6 +13,8 @@ import com.example.lokaloka.repository.IUserRepository;
 import com.example.lokaloka.service.IItineraryService;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,9 +58,18 @@ public class ItineraryService implements IItineraryService {
     @Override
     @Transactional
     public ItineraryResDTO createItinerary(ItineraryResDTO itineraryDTO) {
-        //  get current user login
-        User user = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));
+        // 🔥 Lấy email của user từ SecurityContextHolder
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email;
+        if (principal instanceof UserDetails) {
+            email = ((UserDetails) principal).getUsername();  // Lấy email từ UserDetails
+        } else {
+            email = principal.toString();
+        }
 
+        // 🔥 Tìm user theo email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
         // Tạo mới Itinerary
         Itinerary itinerary = new Itinerary();
         itinerary.setTitle(itineraryDTO.getTitle());

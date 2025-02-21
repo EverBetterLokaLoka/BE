@@ -33,6 +33,7 @@ public class User {
     boolean is_active;
     Timestamp created_at;
     Timestamp updated_at;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Itinerary> itineraries; // Đổi từ Itinerary sang List<Itinerary>
 }
