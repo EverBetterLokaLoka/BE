@@ -1,17 +1,18 @@
 package com.example.lokaloka.controller;
 
+import com.example.lokaloka.domain.dto.reqdto.UserReqDTO;
+import com.example.lokaloka.domain.entity.User;
 import com.example.lokaloka.service.IUserService;
+import com.example.lokaloka.util.ResponseData;
+import com.example.lokaloka.util.SuccessCode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -25,7 +26,25 @@ public class UserRestController {
 
     @GetMapping("/check-login")
     public String checkLogin(Authentication authentication ) {
-
         return userService.checkLoginStatus(authentication);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseData<?>> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                ResponseData.builder()
+                        .code(SuccessCode.GET_SUCCESSFUL.getCode())
+                        .message(SuccessCode.GET_SUCCESSFUL.getMessage())
+                        .data(userService.getUserById(id))
+                        .build());
+    }
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseData<?>> updateUser(@PathVariable Long id, @RequestBody UserReqDTO user) {
+        return ResponseEntity.ok(
+                ResponseData.builder()
+                        .code(SuccessCode.UPDATED.getCode())
+                        .message(SuccessCode.UPDATED.getMessage())
+                        .data(userService.updateUser(id,user))
+                        .build());
     }
 }

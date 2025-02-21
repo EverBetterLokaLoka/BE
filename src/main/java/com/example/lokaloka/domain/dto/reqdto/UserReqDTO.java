@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -21,5 +22,7 @@ public class UserReqDTO {
     private EGender gender;
     private LocalDate dob;
     private String idToken;
+    private LocalDateTime updatedAt;
+
     private boolean isActive; // Giá trị mặc định có thể là true khi người dùng đăng ký
 }
