@@ -20,4 +20,5 @@ public class ResponseData<T> {
     LocalDateTime timestamp;
     String path;
     String error;
+    String token;
 }

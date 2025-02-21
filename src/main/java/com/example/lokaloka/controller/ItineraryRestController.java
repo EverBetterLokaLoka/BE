@@ -10,6 +10,7 @@ import com.example.lokaloka.util.SuccessCode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,8 +59,8 @@ public class ItineraryRestController {
     @GetMapping
     public ResponseEntity<?> getItineraries() {
         return ResponseEntity.ok(ResponseData.builder()
-                .code(SuccessCode.GET_SUCCESSFUL.getCode())
-                .message(SuccessCode.GET_SUCCESSFUL.getMessage())
+                .code(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getCode())
+                .message(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getMessage())
                 .data(itineraryService.getAllItineraries())
                 .build());
     }
@@ -68,8 +69,8 @@ public class ItineraryRestController {
     public ResponseEntity<?> getItineraryById(@PathVariable Long id) {
         ItineraryResDTO itinerary = itineraryService.getItineraryById(id);
         return ResponseEntity.ok(ResponseData.builder()
-                .code(SuccessCode.GET_SUCCESSFUL.getCode())
-                .message(SuccessCode.GET_SUCCESSFUL.getMessage())
+                .code(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getCode())
+                .message(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getMessage())
                 .data(itinerary)
                 .build());
     }
@@ -77,9 +78,9 @@ public class ItineraryRestController {
     @PostMapping
     public ResponseEntity<?> createItinerary(@RequestBody ItineraryResDTO itineraryResDTO) {
         ItineraryResDTO createdItinerary = itineraryService.createItinerary(itineraryResDTO);
-        return ResponseEntity.ok(ResponseData.builder()
-                .code(SuccessCode.GET_SUCCESS.getCode())
-                .message(SuccessCode.GET_SUCCESS.getMessage())
+        return ResponseEntity.status(HttpStatus.SC_CREATED).body(ResponseData.builder()
+                .code(SuccessCode.CREATE_ITINERARIES_SUCCESSFUL.getCode())
+                .message(SuccessCode.CREATE_ITINERARIES_SUCCESSFUL.getMessage())
                 .data(createdItinerary)
                 .build());
     }
