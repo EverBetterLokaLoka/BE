@@ -50,6 +50,10 @@ dependencies {
 
 		compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
 		implementation 'org.springframework.boot:spring-boot-starter-logging'
+		implementation 'org.springframework.boot:spring-boot-starter-web'
+		implementation 'org.springframework.boot:spring-boot-starter-websocket'
+		implementation 'org.springframework.boot:spring-boot-starter-reactor-netty'
+
 	}
 
 }
