@@ -1,26 +1,21 @@
-# Use official Gradle image as build stage
-FROM gradle:latest AS build
+# Use Gradle with JDK 23
+FROM gradle:jdk23 AS build
 
 # Set working directory
 WORKDIR /app
 
-# Copy project files
+# Copy only Gradle wrapper and build files first
+COPY gradle gradle
+COPY gradlew .
+COPY build.gradle .
+COPY settings.gradle .
+RUN chmod +x gradlew
+
+# Download dependencies first (for better caching)
+RUN ./gradlew dependencies --no-daemon
+
+# Copy the rest of the project files
 COPY . .
 
 # Build the application
-RUN gradle clean build --no-daemon
-
-# Use Eclipse Temurin JDK 23 as runtime image
-FROM eclipse-temurin:23-jdk
-
-# Set working directory
-WORKDIR /app
-
-# Copy JAR file from build stage
-COPY --from=build /app/build/libs/*.jar app.jar
-
-# Expose application port (adjust if needed)
-EXPOSE 8080
-
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+RUN ./gradlew clean build --no-daemon
