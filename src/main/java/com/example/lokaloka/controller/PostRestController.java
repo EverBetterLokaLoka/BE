@@ -26,6 +26,7 @@ public class PostRestController {
     private final ICommentService commentService;
     private final ILikeService likeService;
 
+    //done
     @PostMapping
     public ResponseEntity<PostReqDTO> createPost(@RequestBody PostReqDTO postReqDTO) {
         return ResponseEntity.ok(postService.createPost(postReqDTO));
@@ -47,10 +48,18 @@ public class PostRestController {
         return ResponseEntity.ok(postService.getUserPosts(userId));
     }
 
+    //done
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentReqDTO> addComment(@PathVariable Long postId, @RequestBody CommentReqDTO commentDTO) {
         commentDTO.setPostId(postId);
         return ResponseEntity.ok(commentService.createComment(commentDTO));
+    }
+
+    //update comment
+    @PutMapping("/{postId}/comments/{commentId}")
+    public ResponseEntity<CommentReqDTO> updateComment(@PathVariable Long postId, @PathVariable Long commentId, @RequestBody CommentReqDTO commentDTO) {
+        commentDTO.setPostId(postId);
+        return ResponseEntity.ok(commentService.updateComment(commentId,commentDTO));
     }
 
     @DeleteMapping("/comments/{commentId}")
@@ -59,8 +68,9 @@ public class PostRestController {
         return ResponseEntity.noContent().build();
     }
 
+    //done
     @PostMapping("/{postId}/likes")
-    public ResponseEntity<LikeReqDTO> toggleLike(@PathVariable Long postId, @RequestParam Long userId) {
-        return ResponseEntity.ok(likeService.toggleLike(postId, userId));
+    public ResponseEntity<LikeReqDTO> toggleLike(@PathVariable Long postId) {
+        return ResponseEntity.ok(likeService.toggleLike(postId));
     }
 }

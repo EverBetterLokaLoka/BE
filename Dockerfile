@@ -4,18 +4,20 @@ FROM gradle:jdk23 AS build
 # Set working directory
 WORKDIR /app
 
-# Copy only Gradle wrapper and build files first
-COPY gradle gradle
+# Copy Gradle wrapper and build files first
 COPY gradlew .
+COPY gradle gradle
 COPY build.gradle .
 COPY settings.gradle .
+
+# Cấp quyền thực thi cho gradlew
 RUN chmod +x gradlew
 
 # Download dependencies first (for better caching)
 RUN ./gradlew dependencies --no-daemon
 
-# Copy the rest of the project files
+# Copy toàn bộ source code
 COPY . .
 
-# Build the application
+# Build ứng dụng
 RUN ./gradlew clean build --no-daemon

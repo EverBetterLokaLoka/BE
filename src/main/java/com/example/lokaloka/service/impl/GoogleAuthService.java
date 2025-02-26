@@ -2,6 +2,7 @@ package com.example.lokaloka.service.impl;
 
 import com.example.lokaloka.domain.dto.reqdto.LoginReqDTO;
 import com.example.lokaloka.domain.dto.reqdto.UserReqDTO;
+import com.example.lokaloka.domain.dto.resdto.LoginResDTO;
 import com.example.lokaloka.domain.entity.User;
 import com.example.lokaloka.domain.enumeration.EGender;
 import com.example.lokaloka.repository.IUserRepository;
@@ -21,6 +22,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import java.util.*;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.regex.Pattern;
 
 @Service
 public class GoogleAuthService {
@@ -83,13 +85,48 @@ public class GoogleAuthService {
 
     public ResponseEntity<?> registerUserWithGoogle(UserReqDTO userReqDTO) {
         try {
+            // Biểu thức chính quy kiểm tra email hợp lệ
+            String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
+            Pattern pattern = Pattern.compile(emailRegex);
+
+            if (userReqDTO.getEmail() == null || !pattern.matcher(userReqDTO.getEmail()).matches()) {
+                return ResponseEntity.badRequest().body(
+                        ApiResponse.builder()
+                                .success(false)
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message("Please enter a valid email address.")
+                                .build()
+                );
+            }
+
+            if (userReqDTO.getPassword() == null || userReqDTO.getPassword().length() < 8 || userReqDTO.getPassword().length() > 16) {
+                return ResponseEntity.badRequest().body(
+                        ApiResponse.builder()
+                                .success(false)
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message("Password must be between 8 and 16 characters.")
+                                .build()
+                );
+            }
+
+            if (!userReqDTO.getPassword().equals(userReqDTO.getPasswordConfirm())) {
+                return ResponseEntity.badRequest().body(
+                        ApiResponse.builder()
+                                .success(false)
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message("Passwords do not match. Please try again.")
+                                .build()
+                );
+            }
+
             Optional<User> existingUser = userRepository.findByEmail(userReqDTO.getEmail());
 
             if (existingUser.isPresent()) {
                 return ResponseEntity.badRequest().body(
                         ApiResponse.builder()
-                                .code(ErrorCode.CREATE_USER_FAILED.getCode())
-                                .message("User already exists with email: " + userReqDTO.getEmail())
+                                .success(false)
+                                .status(HttpStatus.CONFLICT.value())
+                                .message("An account already exists with the same email address.")
                                 .build()
                 );
             }
@@ -133,11 +170,41 @@ public class GoogleAuthService {
             User user = userRepository.findByEmail(loginRequest.getEmail())
                     .orElse(null);
 
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            if(loginRequest.getEmail() == null || loginRequest.getPassword() == null) {
+                return ResponseEntity.badRequest().body(
                         ApiResponse.builder()
-                                .code(ErrorCode.ERROR_EMAIL.getCode())
-                                .message("Email is incorrect")
+                                .status(ErrorCode.CREATE_USER_FAILED.getCode())
+                                .success(false)
+                                .message("Please enter your email and password.")
+                                .build()
+                );
+            }
+
+            if(loginRequest.getEmail() == null ) {
+                return ResponseEntity.badRequest().body(
+                        ApiResponse.builder()
+                                .status(ErrorCode.CREATE_USER_FAILED.getCode())
+                                .success(false)
+                                .message("Please enter your email.")
+                        .build()
+                );
+            }
+            if(loginRequest.getPassword() == null ) {
+                return ResponseEntity.badRequest().body(
+                        ApiResponse.builder()
+                                .status(ErrorCode.CREATE_USER_FAILED.getCode())
+                                .success(false)
+                                .message("Please enter your password.")
+                        .build()
+                );
+            }
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                        ApiResponse.builder()
+                                .success(false)
+                                .status(ErrorCode.UNAUTHORIZED.getCode())
+                                .message("Invalid email or password. Please try again")
                                 .build()
                 );
             }
@@ -145,26 +212,42 @@ public class GoogleAuthService {
             if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                         ApiResponse.builder()
-                                .code(ErrorCode.ERROR_PASSWORD.getCode())
-                                .message("Password is incorrect")
+                                .success(false)
+                                .status(ErrorCode.UNAUTHORIZED.getCode())
+                                .message("Invalid email or password. Please try again")
                                 .build()
                 );
             }
+            // Convert the User entity to a UserDTO to exclude itineraries
+            LoginResDTO userDTO = LoginResDTO.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .full_name(user.getFull_name())
+                    .address(user.getAddress())
+                    .phone(user.getPhone())
+                    .gender(user.getGender())
+                    .dob(user.getDob())
+                    .is_active(user.is_active())
+                    .created_at(user.getCreated_at())
+                    .updated_at(user.getUpdated_at())
+                    .build();
 
             String token = jwtTokenUtil.generateToken(user.getEmail(), user.getFull_name());
 
             return ResponseEntity.ok(
                     ResponseData.builder()
                             .code(SuccessCode.GET_SUCCESS.getCode())
-                            .message("Login successful!")
-                            .data(user)
+                            .message("Sign In successfully")
+                            .data(userDTO)
                             .token(token)
                             .build()
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     ApiResponse.builder()
-                            .code(ErrorCode.LOGIN_FAILED.getCode())
+                            .code(ErrorCode.UNAUTHORIZED.getCode())
+                            .status(ErrorCode.UNAUTHORIZED.getCode())
+                            .success(false)
                             .message("Login failed due to an error: " + e.getMessage())
                             .build()
             );

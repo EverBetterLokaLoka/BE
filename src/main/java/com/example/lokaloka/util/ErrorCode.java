@@ -13,7 +13,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(404, "User Not Found", HttpStatus.NOT_FOUND),
     ERROR_EMAIL(4001, "Email Not Found", HttpStatus.NOT_FOUND),
     ERROR_PASSWORD(4002, "Password is incorrect", HttpStatus.BAD_REQUEST),
-    LOGIN_FAILED(4003, "Login failed", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED(401, "Login failed", HttpStatus.UNAUTHORIZED),
     CREATE_USER_FAILED(400,"User created failed", HttpStatus.BAD_REQUEST);
     int code;
     String message;

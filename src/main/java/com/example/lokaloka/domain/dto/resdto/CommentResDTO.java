@@ -1,18 +1,20 @@
-package com.example.lokaloka.domain.dto.reqdto;
+package com.example.lokaloka.domain.dto.resdto;
 
-import com.example.lokaloka.domain.entity.User;
 import lombok.*;
 
 import java.sql.Timestamp;
 
 @Getter
 @Setter
+@Data
 @Builder
-public class PostReqDTO {
+@NoArgsConstructor
+@AllArgsConstructor
+public class CommentResDTO {
+
     private Long id;
-    private String title;
     private String content;
-    private Long user_id;
+    private Long postId; // Post ID mà comment này liên kết tới
     private boolean isDestroyed;
     private Timestamp createdAt;
     private Timestamp updatedAt;
