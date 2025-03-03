@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +63,16 @@ public class LikeService implements ILikeService {
             return convertToDTO(savedLike);
         }
     }
+    @Override
+    public List<LikeReqDTO> getAllLikeForPost(Long postId) {
+        // Lấy tất cả like của post từ database
+        List<Like> likes = likeRepository.findByPostId(postId);  // Tạo phương thức này trong repository
 
+        // Chuyển đổi từ Like entity thành LikeReqDTO và trả về danh sách
+        return likes.stream()
+                .map(this::convertToDTO)  // Chuyển đổi Like thành LikeReqDTO
+                .collect(Collectors.toList());
+    }
     private LikeReqDTO convertToDTO(Like like) {
         return LikeReqDTO.builder()
                 .id(like.getId())

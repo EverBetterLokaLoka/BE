@@ -1,23 +1,26 @@
 # Use Gradle with JDK 23
-FROM gradle:jdk23 AS build
+FROM eclipse-temurin:23-jdk as build
 
 # Set working directory
 WORKDIR /app
 
-# Copy Gradle wrapper and build files first
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
-
-# Cấp quyền thực thi cho gradlew
-RUN chmod +x gradlew
-
-# Download dependencies first (for better caching)
-RUN ./gradlew dependencies --no-daemon
-
-# Copy toàn bộ source code
+# Copy toàn bộ source code vào container
 COPY . .
 
-# Build ứng dụng
-RUN ./gradlew clean build --no-daemon
+# Build ứng dụng với Gradle
+RUN ./gradlew clean build -x test
+
+# Stage chạy ứng dụng
+FROM eclipse-temurin:17-jre
+
+# Đặt thư mục làm việc trong container
+WORKDIR /app
+
+# Copy file JAR từ giai đoạn build
+COPY --from=build /app/build/libs/*.jar app.jar
+
+# Expose port ứng dụng (thay thế 8080 bằng port của bạn nếu khác)
+EXPOSE 8080
+
+# Chạy ứng dụng
+ENTRYPOINT ["java", "-jar", "app.jar"]

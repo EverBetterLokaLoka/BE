@@ -66,8 +66,15 @@ public class PostService implements IPostService {
     }
 
     @Override
-    public List<PostReqDTO> getUserPosts(Long userId) {
-        return postRepository.findActivePostsByUserId(userId).stream()
+    public List<PostReqDTO> getUserPosts() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUserEmail = authentication.getName(); // Assuming the email is stored as the principal
+
+        User user = userRepository.findByEmail(loggedInUserEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return postRepository.findActivePostsByUserId(user.getId()).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

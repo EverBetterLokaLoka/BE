@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -84,6 +86,20 @@ public class CommentService implements ICommentService {
         return convertToDTO(updatedComment);
     }
 
+    @Override
+    public List<CommentReqDTO> getAllComment(Long postId) {
+        // Lấy thông tin người dùng hiện tại (tùy chọn nếu bạn cần kiểm tra quyền)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUserEmail = authentication.getName();
+
+        // Lấy tất cả comment của postId từ database
+        List<Comment> comments = commentRepository.findByPostId(postId);  // Phương thức tìm kiếm các comment theo postId
+
+        // Chuyển đổi các comment thành DTO và trả về
+        return comments.stream()
+                .map(this::convertToDTO)  // Chuyển đổi comment thành CommentReqDTO
+                .collect(Collectors.toList());
+    }
     @Override
     public void deleteComment(Long commentId) {
 

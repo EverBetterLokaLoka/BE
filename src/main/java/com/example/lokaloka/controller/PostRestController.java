@@ -31,21 +31,21 @@ public class PostRestController {
     public ResponseEntity<PostReqDTO> createPost(@RequestBody PostReqDTO postReqDTO) {
         return ResponseEntity.ok(postService.createPost(postReqDTO));
     }
-
+    //done
     @PutMapping("/{id}")
     public ResponseEntity<PostReqDTO> updatePost(@PathVariable Long id, @RequestBody PostReqDTO postReqDTO) {
         return ResponseEntity.ok(postService.updatePost(id, postReqDTO));
     }
-
+    //done
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+    public ResponseEntity<?> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
     }
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<PostReqDTO>> getUserPosts(@PathVariable Long userId) {
-        return ResponseEntity.ok(postService.getUserPosts(userId));
+    //done
+    @GetMapping
+    public ResponseEntity<List<PostReqDTO>> getUserPosts() {
+        return ResponseEntity.ok(postService.getUserPosts());
     }
 
     //done
@@ -55,6 +55,11 @@ public class PostRestController {
         return ResponseEntity.ok(commentService.createComment(commentDTO));
     }
 
+    @GetMapping("{postId}/comments")
+    public ResponseEntity<List<CommentReqDTO>> getAllComments(@PathVariable Long postId) {
+        List<CommentReqDTO> comments = commentService.getAllComment(postId);
+        return ResponseEntity.ok(comments);
+    }
     //update comment
     @PutMapping("/{postId}/comments/{commentId}")
     public ResponseEntity<CommentReqDTO> updateComment(@PathVariable Long postId, @PathVariable Long commentId, @RequestBody CommentReqDTO commentDTO) {
@@ -72,5 +77,11 @@ public class PostRestController {
     @PostMapping("/{postId}/likes")
     public ResponseEntity<LikeReqDTO> toggleLike(@PathVariable Long postId) {
         return ResponseEntity.ok(likeService.toggleLike(postId));
+    }
+
+    @GetMapping("/{postId}/likes")
+    public ResponseEntity<List<LikeReqDTO>> getAllLikes(@PathVariable Long postId) {
+        List<LikeReqDTO> likeList = likeService.getAllLikeForPost(postId);
+        return ResponseEntity.ok(likeList);
     }
 }
