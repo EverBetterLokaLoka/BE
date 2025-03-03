@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum SuccessCode {
     CREATED(201, "Success Created" , HttpStatus.CREATED),
+    SUCCESS(200, "Success " , HttpStatus.OK),
     DELETE_SUCCESSFUL(1012, "Delete itineraries successfully", HttpStatus.OK),
     UPDATE_SUCCESSFUL(1013, "Update itineraries successfully", HttpStatus.OK),
     GET_SUCCESSFUL(1010, "Get successful", HttpStatus.OK),

@@ -3,6 +3,7 @@ package com.example.lokaloka.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.sql.Timestamp;
 
@@ -13,6 +14,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 public class Follower {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +28,10 @@ public class Follower {
     @JoinColumn(name = "followed_id", nullable = false)
     private User followed;
 
-    private Long relationship_type;
+    @ManyToOne
+    @JoinColumn(name = "relationship_id", nullable = false)
+    private RelationshipType relationshipType;
+
 
     Timestamp created_at;
     Timestamp updated_at;

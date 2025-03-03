@@ -5,10 +5,13 @@ import com.example.lokaloka.domain.dto.reqdto.UserReqDTO;
 import com.example.lokaloka.domain.entity.BlacklistedToken;
 import com.example.lokaloka.repository.IBlacklistedTokenRepository;
 import com.example.lokaloka.service.impl.GoogleAuthService;
+import com.example.lokaloka.util.ApiResponse;
+import com.example.lokaloka.util.SuccessCode;
 import com.google.cloud.Timestamp;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -54,7 +57,7 @@ public class AuthRestController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             log.info("Logging out token: {}", token);
@@ -66,10 +69,21 @@ public class AuthRestController {
 
                 blacklistedTokenRepository.save(blacklistedToken);
                 log.info("Token successfully blacklisted");
-                return ResponseEntity.ok("Logout successful!");
+                return ResponseEntity.status(SuccessCode.SUCCESS.getCode()).body(
+                        ApiResponse.builder()
+                                .success(false)
+                                .status(SuccessCode.SUCCESS.getCode())
+                                .message("Sign Out successfully")
+                                .build()
+                );
             } else {
-                log.warn("Token already blacklisted");
-                return ResponseEntity.ok("Already logged out!");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                        ApiResponse.builder()
+                                .success(false)
+                                .status(HttpStatus.UNAUTHORIZED.value())
+                                .message("Token already invalidated")
+                                .build()
+                );
             }
         }
         log.error("Invalid token format in logout request");
