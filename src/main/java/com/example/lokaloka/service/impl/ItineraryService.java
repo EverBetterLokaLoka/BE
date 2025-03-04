@@ -11,8 +11,12 @@ import com.example.lokaloka.repository.IItineraryRepository;
 import com.example.lokaloka.repository.ILocationRepository;
 import com.example.lokaloka.repository.IUserRepository;
 import com.example.lokaloka.service.IItineraryService;
+import com.example.lokaloka.util.ApiResponse;
+import com.example.lokaloka.util.CustomException;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -38,14 +42,28 @@ public class ItineraryService implements IItineraryService {
 
     @Override
     public List<ItineraryResDTO> getAllItineraries() {
-        // get current user is Login
-        User user = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));
+        // 🔥 Lấy email của user từ SecurityContextHolder
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email;
+        if (principal instanceof UserDetails) {
+            email = ((UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
 
+        // 🔥 Tìm user theo email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // 🔥 Lấy danh sách itinerary của user hiện tại
         List<Itinerary> itineraries = itineraryRepository.findByUser(user);
+
+        // 🔥 Convert sang DTO
         return itineraries.stream()
                 .map(itineraryMapper::toItineraryResDTO)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public ItineraryResDTO getItineraryById(Long id) {
@@ -54,7 +72,6 @@ public class ItineraryService implements IItineraryService {
         return itineraryMapper.toItineraryResDTO(itinerary);
     }
 
-
     @Override
     @Transactional
     public ItineraryResDTO createItinerary(ItineraryResDTO itineraryDTO) {
@@ -62,14 +79,26 @@ public class ItineraryService implements IItineraryService {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email;
         if (principal instanceof UserDetails) {
-            email = ((UserDetails) principal).getUsername();  // Lấy email từ UserDetails
+            email = ((UserDetails) principal).getUsername();
         } else {
             email = principal.toString();
         }
 
         // 🔥 Tìm user theo email
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // 🔥 Kiểm tra title không được để trống
+        if (itineraryDTO.getTitle() == null || itineraryDTO.getTitle().trim().isEmpty()) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "Itinerary title cannot be empty.");
+        }
+
+        // 🔥 Kiểm tra title không được trùng với user hiện tại
+        boolean exists = itineraryRepository.existsByTitleAndUser(itineraryDTO.getTitle(), user);
+        if (exists) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "Itinerary title already exists.");
+        }
+
         // Tạo mới Itinerary
         Itinerary itinerary = new Itinerary();
         itinerary.setTitle(itineraryDTO.getTitle());
@@ -84,7 +113,7 @@ public class ItineraryService implements IItineraryService {
 
         Itinerary savedItinerary = itineraryRepository.save(itinerary);
 
-        // Tạo danh sách Location
+        // Xử lý danh sách location
         if (itineraryDTO.getLocations() != null && !itineraryDTO.getLocations().isEmpty()) {
             List<Location> locations = itineraryDTO.getLocations().stream().map(locationResDTO -> {
                 Location location = new Location();
@@ -95,7 +124,6 @@ public class ItineraryService implements IItineraryService {
                 location.setCoordinate_y(locationResDTO.getCoordinate_y());
                 location.setTime_reminder(locationResDTO.getTime_reminder());
 
-                // Chuyển đổi String thành Timestamp
                 location.setTime_start(Timestamp.valueOf(locationResDTO.getTime_start().toLocalDateTime()));
                 location.setTime_finish(Timestamp.valueOf(locationResDTO.getTime_finish().toLocalDateTime()));
 
@@ -136,6 +164,7 @@ public class ItineraryService implements IItineraryService {
 
         return itineraryMapper.toItineraryResDTO(savedItinerary);
     }
+
 
     @Override
     @Transactional

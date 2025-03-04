@@ -1,5 +1,6 @@
 package com.example.lokaloka.service.impl;
 
+import com.example.lokaloka.domain.dto.reqdto.ProfileReqDTO;
 import com.example.lokaloka.domain.dto.reqdto.UserReqDTO;
 import com.example.lokaloka.domain.dto.resdto.UserResDTO;
 import com.example.lokaloka.exception.AppException;
@@ -51,47 +52,60 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public UserResDTO updateUser(Long id, UserReqDTO userReqDTO) {
+    public ProfileReqDTO updateUser(Long id, ProfileReqDTO profileReqDTO) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        // Không cho phép thay đổi email
-        userReqDTO.setEmail(user.getEmail());
+        // ✅ Kiểm tra password không có khoảng trắng nếu có nhập
+        if (profileReqDTO.getPassword() != null && profileReqDTO.getPassword().contains(" ")) {
+            throw new AppException(ErrorCode.PASSWORD_CONTAIN_SPACE);
+        }
 
-        // Nếu có mật khẩu mới, mã hóa trước khi cập nhật
-        if (userReqDTO.getPassword() != null && !userReqDTO.getPassword().isEmpty()) {
-            String encodedPassword = passwordEncoder.encode(userReqDTO.getPassword());
+        // ✅ Kiểm tra full name không phải chỉ chứa khoảng trắng
+        if (profileReqDTO.getFull_name() != null && profileReqDTO.getFull_name().trim().isEmpty()) {
+            throw new AppException(ErrorCode.FULL_NAME_IS_EMPTY);
+        }
+
+        // ✅ Kiểm tra số điện thoại có đúng 10 chữ số
+        if (profileReqDTO.getPhone() != null && !profileReqDTO.getPhone().matches("\\d{10}")) {
+            throw new AppException(ErrorCode.IN_VALID_PHONE_NUMBER);
+        }
+
+        if (profileReqDTO.getEmergency_number() != null &&
+                !profileReqDTO.getEmergency_number().isEmpty() &&
+                !profileReqDTO.getEmergency_number().matches("\\d{10}")) {
+            throw new AppException(ErrorCode.IN_VALID_EMERGENCY_NUMBER);
+        }
+
+        if (profileReqDTO.getPassword() != null && !profileReqDTO.getPassword().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(profileReqDTO.getPassword());
             user.setPassword(encodedPassword);
         }
-
-        // Chỉ cập nhật những trường có giá trị mới
-        if (userReqDTO.getFullName() != null) {
-            user.setFull_name(userReqDTO.getFullName());
+        if (profileReqDTO.getFull_name() != null) {
+            user.setFull_name(profileReqDTO.getFull_name());
         }
-        if (userReqDTO.getAddress() != null) {
-            user.setAddress(userReqDTO.getAddress());
+        if (profileReqDTO.getAddress() != null) {
+            user.setAddress(profileReqDTO.getAddress());
         }
-        if (userReqDTO.getPhone() != null) {
-            user.setPhone(userReqDTO.getPhone());
+        if (profileReqDTO.getPhone() != null) {
+            user.setPhone(profileReqDTO.getPhone());
         }
-        if (userReqDTO.getGender() != null) {
-            user.setGender(userReqDTO.getGender());
+        if (profileReqDTO.getGender() != null) {
+            user.setGender(profileReqDTO.getGender());
         }
-        if (userReqDTO.getDob() != null) {
-            user.setDob(userReqDTO.getDob());
+        if (profileReqDTO.getDob() != null) {
+            user.setDob(profileReqDTO.getDob());
         }
 
-        // 🕒 Cập nhật thời gian `updated_at`
+        // ✅ Chỉ cập nhật emergency_number nếu có nhập vào
+        if (profileReqDTO.getEmergency_number() != null) {
+            user.setEmergency_numbers(profileReqDTO.getEmergency_number());
+        }
+
         user.setUpdated_at(Timestamp.valueOf(LocalDateTime.now()));
-
-        // Lưu dữ liệu cập nhật vào database
         userRepository.save(user);
 
-        // Trả về UserResDTO sau khi cập nhật
-        return userMapper.toUserResDTO(user);
+        return userMapper.toProfileReqDTO(user);
     }
-
-
-
 
 }

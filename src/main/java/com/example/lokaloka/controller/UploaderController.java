@@ -25,7 +25,8 @@ public class UploaderController {
         try {
             String imageUrl = uploaderConfig.uploadFile(file);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.builder()
-                    .code(HttpStatus.CREATED.value())
+                    .success(true)
+                    .status(HttpStatus.CREATED.value())
                     .message("Image uploaded successfully")
                     .data(imageUrl)
                     .build()

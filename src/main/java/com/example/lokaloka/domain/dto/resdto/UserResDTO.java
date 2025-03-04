@@ -1,7 +1,6 @@
 package com.example.lokaloka.domain.dto.resdto;
 
 import lombok.*;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -13,10 +12,13 @@ import java.util.List;
 public class UserResDTO {
     private Long id;
     private String email;
-    private String fullName;
+
+    private String full_name;
+    private String password;
     private String address;
     private String phone;
+    private String gender;
     private LocalDate dob;
-    private boolean isActive;
+    private String emergency_numbers;
     private List<ItineraryResDTO> itineraries;
 }

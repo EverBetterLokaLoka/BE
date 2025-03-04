@@ -69,7 +69,7 @@ public class GoogleAuthService {
 
                 return ResponseEntity.ok(
                         ResponseData.builder()
-                                .code(SuccessCode.GET_SUCCESS.getCode())
+                                .status(SuccessCode.GET_SUCCESS.getCode())
                                 .message("Authentication successful")
                                 .data(user)
                                 .token(jwtToken)
@@ -85,31 +85,8 @@ public class GoogleAuthService {
 
     public ResponseEntity<?> registerUserWithGoogle(UserReqDTO userReqDTO) {
         try {
-            // Biểu thức chính quy kiểm tra email hợp lệ
-            String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
-            Pattern pattern = Pattern.compile(emailRegex);
-
-            if (userReqDTO.getEmail() == null || !pattern.matcher(userReqDTO.getEmail()).matches()) {
-                return ResponseEntity.badRequest().body(
-                        ApiResponse.builder()
-                                .success(false)
-                                .status(HttpStatus.BAD_REQUEST.value())
-                                .message("Please enter a valid email address.")
-                                .build()
-                );
-            }
-
-            if (userReqDTO.getPassword() == null || userReqDTO.getPassword().length() < 8 || userReqDTO.getPassword().length() > 16) {
-                return ResponseEntity.badRequest().body(
-                        ApiResponse.builder()
-                                .success(false)
-                                .status(HttpStatus.BAD_REQUEST.value())
-                                .message("Password must be between 8 and 16 characters.")
-                                .build()
-                );
-            }
-
-            if (!userReqDTO.getPassword().equals(userReqDTO.getPasswordConfirm())) {
+            // 🔥 Kiểm tra password và confirm_password có khớp không
+            if (!userReqDTO.getPassword().equals(userReqDTO.getConfirm_password())) {
                 return ResponseEntity.badRequest().body(
                         ApiResponse.builder()
                                 .success(false)
@@ -119,10 +96,10 @@ public class GoogleAuthService {
                 );
             }
 
+            // 🔥 Kiểm tra email đã tồn tại chưa
             Optional<User> existingUser = userRepository.findByEmail(userReqDTO.getEmail());
-
             if (existingUser.isPresent()) {
-                return ResponseEntity.badRequest().body(
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(
                         ApiResponse.builder()
                                 .success(false)
                                 .status(HttpStatus.CONFLICT.value())
@@ -131,9 +108,10 @@ public class GoogleAuthService {
                 );
             }
 
+            // 🔥 Tạo user mới
             User newUser = User.builder()
                     .email(userReqDTO.getEmail())
-                    .full_name(userReqDTO.getFullName())
+                    .full_name(userReqDTO.getFull_name())
                     .address(userReqDTO.getAddress())
                     .phone(userReqDTO.getPhone())
                     .gender(userReqDTO.getGender() != null ? userReqDTO.getGender() : EGender.OTHER)
@@ -145,12 +123,14 @@ public class GoogleAuthService {
 
             userRepository.save(newUser);
 
+            // 🔥 Tạo token JWT
             String token = jwtTokenUtil.generateToken(newUser.getEmail(), newUser.getFull_name());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     ResponseData.builder()
-                            .code(SuccessCode.CREATED.getCode())
-                            .message("User registered successfully")
+                            .success(true)
+                            .status(HttpStatus.CREATED.value())
+                            .message("Sign Up successfully")
                             .data(newUser)
                             .token(token)
                             .build()
@@ -158,19 +138,25 @@ public class GoogleAuthService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     ApiResponse.builder()
-                            .code(ErrorCode.CREATE_USER_FAILED.getCode())
+                            .status(ErrorCode.CREATE_USER_FAILED.getCode())
                             .message("Registration failed due to an error: " + e.getMessage())
                             .build()
             );
         }
     }
 
+
     public ResponseEntity<?> loginUser(LoginReqDTO loginRequest) {
         try {
+            // Biểu thức chính quy kiểm tra email hợp lệ
+            String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
+            Pattern pattern = Pattern.compile(emailRegex);
+
+
             User user = userRepository.findByEmail(loginRequest.getEmail())
                     .orElse(null);
 
-            if(loginRequest.getEmail() == null || loginRequest.getPassword() == null) {
+            if(loginRequest.getEmail() == null && loginRequest.getPassword() == null) {
                 return ResponseEntity.badRequest().body(
                         ApiResponse.builder()
                                 .status(ErrorCode.CREATE_USER_FAILED.getCode())
@@ -186,7 +172,16 @@ public class GoogleAuthService {
                                 .status(ErrorCode.CREATE_USER_FAILED.getCode())
                                 .success(false)
                                 .message("Please enter your email.")
-                        .build()
+                                .build()
+                );
+            }
+            if (!pattern.matcher(loginRequest.getEmail()).matches()) {
+                return ResponseEntity.badRequest().body(
+                        ApiResponse.builder()
+                                .success(false)
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message("Please enter a valid email address.")
+                                .build()
                 );
             }
             if(loginRequest.getPassword() == null ) {
@@ -195,7 +190,7 @@ public class GoogleAuthService {
                                 .status(ErrorCode.CREATE_USER_FAILED.getCode())
                                 .success(false)
                                 .message("Please enter your password.")
-                        .build()
+                                .build()
                 );
             }
 
@@ -236,7 +231,8 @@ public class GoogleAuthService {
 
             return ResponseEntity.ok(
                     ResponseData.builder()
-                            .code(SuccessCode.GET_SUCCESS.getCode())
+                            .success(true)
+                            .status(HttpStatus.OK.value())
                             .message("Sign In successfully")
                             .data(userDTO)
                             .token(token)
@@ -245,7 +241,6 @@ public class GoogleAuthService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     ApiResponse.builder()
-                            .code(ErrorCode.UNAUTHORIZED.getCode())
                             .status(ErrorCode.UNAUTHORIZED.getCode())
                             .success(false)
                             .message("Login failed due to an error: " + e.getMessage())

@@ -14,11 +14,13 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
 public class ResponseData<T> {
-    int code;
+    Boolean success;
+    Integer status;
     String message;
     T data;
     LocalDateTime timestamp;
     String path;
     String error;
     String token;
+
 }
