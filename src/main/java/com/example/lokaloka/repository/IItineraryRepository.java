@@ -19,4 +19,7 @@ public interface IItineraryRepository  extends JpaRepository<Itinerary, Long> {
     @Query("UPDATE Itinerary i SET i.status = 1 WHERE i.id = :id")
     void updateStatus(@Param("id") Long id);
 
+
+    // 🔥 Kiểm tra xem tiêu đề có tồn tại với user không
+    boolean existsByTitleAndUser(String title, User user);
 }

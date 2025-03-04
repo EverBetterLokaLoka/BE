@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -38,13 +39,21 @@ public class AuthRestController {
     @PostMapping("/register")
     public ResponseEntity<?> registerWithGoogle(@Valid @RequestBody UserReqDTO userReqDTO, BindingResult result) {
         if (result.hasErrors()) {
-            Map<String, String> errors = new HashMap<>();
-            result.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-            return ResponseEntity.badRequest().body(errors);
+            // Lấy lỗi đầu tiên
+            String errorMessage = result.getFieldErrors().get(0).getDefaultMessage();
+
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.builder()
+                            .success(false)
+                            .status(HttpStatus.BAD_REQUEST.value()) // Đúng status
+                            .message(errorMessage) // Chỉ lấy lỗi đầu tiên
+                            .build()
+            );
         }
 
         return googleAuthService.registerUserWithGoogle(userReqDTO);
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginReqDTO loginRequest) {

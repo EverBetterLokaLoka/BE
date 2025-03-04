@@ -5,6 +5,7 @@ import com.example.lokaloka.domain.entity.Itinerary;
 import com.example.lokaloka.service.impl.GeminiService;
 import com.example.lokaloka.service.impl.ItineraryService;
 import com.example.lokaloka.util.ApiResponse;
+import com.example.lokaloka.util.CustomException;
 import com.example.lokaloka.util.ResponseData;
 import com.example.lokaloka.util.SuccessCode;
 import lombok.AccessLevel;
@@ -14,6 +15,7 @@ import org.apache.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,15 +29,31 @@ public class ItineraryRestController {
     GeminiService geminiService;
 
     @PostMapping("/generate")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> generateSchedule(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> generateSchedule(
+            @RequestBody(required = false) Map<String, String> request) {
+
+        // Nếu request body null, tạo request rỗng để tránh lỗi
+        if (request == null) {
+            request = new HashMap<>();
+        }
+
         String prompt = request.get("prompt");
+
+        if (prompt == null || prompt.isEmpty()) {
+            return ResponseEntity.status(400).body(ApiResponse.<Map<String, Object>>builder()
+                    .success(false)
+                    .status(HttpStatus.SC_BAD_REQUEST)
+                    .message("Missing prompt")
+                    .data(null)
+                    .build());
+        }
 
         try {
             Map<String, Object> response = geminiService.generateSchedule(prompt);
 
-            // Kiểm tra nếu có lỗi
             if (response.containsKey("error")) {
                 return ResponseEntity.status(500).body(ApiResponse.<Map<String, Object>>builder()
+                        .success(false)
                         .code(500)
                         .message(response.get("error").toString())
                         .data(null)
@@ -43,12 +61,15 @@ public class ItineraryRestController {
             }
 
             return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
-                    .code(200)
+                    .success(true)
+                    .status(HttpStatus.SC_OK)
                     .message("Itinerary generated successfully")
                     .data(response)
                     .build());
         } catch (Exception e) {
             return ResponseEntity.status(500).body(ApiResponse.<Map<String, Object>>builder()
+                    .success(false)
+                    .status(HttpStatus.SC_INTERNAL_SERVER_ERROR)
                     .code(500)
                     .message("Error when creating itinerary: " + e.getMessage())
                     .data(null)
@@ -56,10 +77,12 @@ public class ItineraryRestController {
         }
     }
 
+
     @GetMapping
     public ResponseEntity<?> getItineraries() {
         return ResponseEntity.ok(ResponseData.builder()
-                .code(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getCode())
+                .success(true)
+                .status(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getCode())
                 .message(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getMessage())
                 .data(itineraryService.getAllItineraries())
                 .build());
@@ -69,7 +92,8 @@ public class ItineraryRestController {
     public ResponseEntity<?> getItineraryById(@PathVariable Long id) {
         ItineraryResDTO itinerary = itineraryService.getItineraryById(id);
         return ResponseEntity.ok(ResponseData.builder()
-                .code(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getCode())
+                .success(true)
+                .status(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getCode())
                 .message(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getMessage())
                 .data(itinerary)
                 .build());
@@ -78,11 +102,27 @@ public class ItineraryRestController {
     @PostMapping
     public ResponseEntity<?> createItinerary(@RequestBody ItineraryResDTO itineraryResDTO) {
         ItineraryResDTO createdItinerary = itineraryService.createItinerary(itineraryResDTO);
-        return ResponseEntity.status(HttpStatus.SC_CREATED).body(ResponseData.builder()
-                .code(SuccessCode.CREATE_ITINERARIES_SUCCESSFUL.getCode())
-                .message(SuccessCode.CREATE_ITINERARIES_SUCCESSFUL.getMessage())
-                .data(createdItinerary)
-                .build());
+        return ResponseEntity.status(HttpStatus.SC_CREATED).body(
+                ApiResponse.builder()
+                        .success(true)
+                        .status(HttpStatus.SC_CREATED)
+                        .message("Save itineraries successfully")
+                        .data(createdItinerary)
+                        .build()
+        );
+    }
+
+    // Bắt lỗi chung cho toàn bộ controller
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<?> handleCustomException(CustomException ex) {
+        return ResponseEntity.status(ex.getStatus()).body(
+                ApiResponse.builder()
+                        .success(false)
+                        .status(ex.getStatus().value())
+                        .message(ex.getMessage())
+                        .data(null)
+                        .build()
+        );
     }
 
     @PutMapping("/{id}")
@@ -90,7 +130,8 @@ public class ItineraryRestController {
         itineraryResDTO.setId(id);
         ItineraryResDTO updatedItinerary = itineraryService.updateItinerary(itineraryResDTO);
         return ResponseEntity.ok(ResponseData.builder()
-                .code(SuccessCode.UPDATE_SUCCESSFUL.getCode())
+                .success(true)
+                .status(SuccessCode.UPDATE_SUCCESSFUL.getCode())
                 .message(SuccessCode.UPDATE_SUCCESSFUL.getMessage())
                 .data(updatedItinerary)
                 .build());
@@ -100,7 +141,8 @@ public class ItineraryRestController {
     public ResponseEntity<?> deleteItinerary(@PathVariable Long id) {
         itineraryService.deleteItineraryById(id);
         return ResponseEntity.ok(ResponseData.builder()
-                .code(SuccessCode.DELETE_SUCCESSFUL.getCode())
+                .success(true)
+                .status(SuccessCode.DELETE_SUCCESSFUL.getCode())
                 .message(SuccessCode.DELETE_SUCCESSFUL.getMessage())
                 .data(null)
                 .build());
