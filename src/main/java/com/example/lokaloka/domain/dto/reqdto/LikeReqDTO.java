@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -15,5 +17,6 @@ public class LikeReqDTO {
     private Long id;
     private Long postId;
     private Long userId;
-    private Timestamp createdAt;
+    private String userEmail;
+    private LocalDateTime createdAt;
 }

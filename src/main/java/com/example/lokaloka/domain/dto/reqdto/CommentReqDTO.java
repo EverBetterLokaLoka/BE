@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -16,7 +19,10 @@ public class CommentReqDTO {
     private String content;
     private Long postId;
     private Long userId;
+    private String userEmail;
+    private String userName;
     private boolean isDestroyed;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String avatar;
 }

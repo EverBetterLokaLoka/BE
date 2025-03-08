@@ -11,6 +11,8 @@ import com.example.lokaloka.domain.entity.Itinerary;
 import com.example.lokaloka.domain.entity.Location;
 import com.example.lokaloka.domain.entity.User;
 import org.mapstruct.Mapper;
+import com.example.lokaloka.domain.entity.Image;
+
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
@@ -21,7 +23,11 @@ public interface UserMapper {
 
     // ✅ Mapping từ User -> UserResDTO, xử lý danh sách itineraries
     @Mapping(target = "itineraries", source = "itineraries")
+    @Mapping(target = "created_at", source = "created_at")
+    @Mapping(target = "updated_at", source = "updated_at")
+    @Mapping(target = "avatar", expression = "java(user.getImages() != null ? user.getImages().stream().filter(img -> \"avatar\".equals(img.getType())).findFirst().map(com.example.lokaloka.domain.entity.Image::getContent).orElse(null) : null)")
     UserResDTO toUserResDTO(User user);
+
 
     // ✅ Mapping từ User -> ProfileReqDTO
     @Mapping(target = "full_name", source = "full_name")
@@ -29,7 +35,7 @@ public interface UserMapper {
     @Mapping(target = "address", source = "address")
     @Mapping(target = "gender", source = "gender")
     @Mapping(target = "dob", source = "dob")
-    @Mapping(target = "emergency_number", source = "emergency_numbers")
+    @Mapping(target = "emergency_numbers", source = "emergency_numbers")
     @Mapping(target = "updatedAt",source = "updated_at")
     @Mapping(target = "email",source = "email")
     ProfileReqDTO toProfileReqDTO(User user);
@@ -40,7 +46,7 @@ public interface UserMapper {
     @Mapping(target = "address", expression = "java(dto.getAddress() != null ? dto.getAddress() : user.getAddress())")
     @Mapping(target = "gender", expression = "java(dto.getGender() != null ? dto.getGender() : user.getGender())")
     @Mapping(target = "dob", expression = "java(dto.getDob() != null ? dto.getDob() : user.getDob())")
-    @Mapping(target = "emergency_numbers", expression = "java(dto.getEmergency_number() != null ? dto.getEmergency_number() : user.getEmergency_numbers())")
+    @Mapping(target = "emergency_numbers", expression = "java(dto.getEmergency_numbers() != null ? dto.getEmergency_numbers() : user.getEmergency_numbers())")
     void updateUserFromDTO(ProfileReqDTO dto, @MappingTarget User user);
 
     // ✅ Mapping từ Itinerary -> ItineraryResDTO

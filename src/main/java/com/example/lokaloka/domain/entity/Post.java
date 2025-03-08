@@ -1,10 +1,12 @@
 package com.example.lokaloka.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.sql.Timestamp;
+import java.time.*;
 import java.util.List;
 
 @Entity
@@ -25,10 +27,12 @@ public class Post {
     private boolean is_destroyed;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Timestamp createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ssXXX", timezone = "Asia/Bangkok")
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private Timestamp updatedAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ssXXX", timezone = "Asia/Bangkok")
+    private LocalDateTime  updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -40,15 +44,20 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Like> likes;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = new Timestamp(System.currentTimeMillis());
+            createdAt = LocalDateTime.now(ZoneId.of("Asia/Bangkok"));
         }
+        System.out.println("CreatedAt before saving: " + createdAt); // Debug
     }
+
 
     @PreUpdate
     public void preUpdate() {
-        updatedAt = new Timestamp(System.currentTimeMillis());
+        updatedAt = LocalDateTime.now(ZoneOffset.ofHours(7));
     }
 }

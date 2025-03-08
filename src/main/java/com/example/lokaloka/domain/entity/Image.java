@@ -1,9 +1,14 @@
 package com.example.lokaloka.domain.entity;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "images")
@@ -11,6 +16,7 @@ import java.sql.Timestamp;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Image {
     @Id
@@ -19,30 +25,35 @@ public class Image {
 
     private String content;
 
-    private  int shares;
+    private Integer shares;
 
     @ManyToOne
-    @JoinColumn(name = "location_id", nullable = false)
+    @JoinColumn(name = "location_id", nullable = true)
     private Location location;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    User user;
+    @JoinColumn(name = "user_id", nullable = true)
+    private User user;
 
     @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
-    Post post;
+    @JoinColumn(name = "post_id", nullable = true)
+    private Post post;
 
     @ManyToOne
-    @JoinColumn(name = "map_id",nullable = false)
-    Map map;
+    @JoinColumn(name = "map_id", nullable = true)
+    private Map map;
 
     @ManyToOne
-    @JoinColumn(name = "activity_id",nullable = false)
-    Activity activity;
+    @JoinColumn(name = "activity_id", nullable = true)
+    private Activity activity;
 
-    Timestamp  created_at;
-    Timestamp  updated_at;
+    @Column(nullable = true)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ssXXX", timezone = "Asia/Bangkok")
+    LocalDateTime  created_at;
 
+    @Column(nullable = true)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ssXXX", timezone = "Asia/Bangkok")
+    LocalDateTime updated_at;
+
+    private String type;
 }
-

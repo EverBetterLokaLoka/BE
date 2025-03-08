@@ -6,10 +6,14 @@ import com.example.lokaloka.domain.dto.reqdto.PostReqDTO;
 import com.example.lokaloka.service.ICommentService;
 import com.example.lokaloka.service.ILikeService;
 import com.example.lokaloka.service.IPostService;
+import com.example.lokaloka.util.ResponseData;
+import com.example.lokaloka.util.SuccessCode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,9 +54,15 @@ public class PostRestController {
 
     //done
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<CommentReqDTO> addComment(@PathVariable Long postId, @RequestBody CommentReqDTO commentDTO) {
+    public ResponseEntity<?> addComment(@PathVariable Long postId, @RequestBody CommentReqDTO commentDTO) {
         commentDTO.setPostId(postId);
-        return ResponseEntity.ok(commentService.createComment(commentDTO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ResponseData.builder()
+                        .success(true)
+                        .status(HttpStatus.CREATED.value())
+                        .message(SuccessCode.GET_SUCCESSFUL.getMessage())
+                        .data(commentService.createComment(commentDTO))
+                        .build());
     }
 
     @GetMapping("{postId}/comments")
@@ -84,4 +94,11 @@ public class PostRestController {
         List<LikeReqDTO> likeList = likeService.getAllLikeForPost(postId);
         return ResponseEntity.ok(likeList);
     }
+
+    // Lấy tất cả bài viết trong hệ thống với is_destroyed = false
+    @GetMapping("/all")
+    public ResponseEntity<List<PostReqDTO>> getAllPosts() {
+        return ResponseEntity.ok(postService.getAllPosts());
+    }
+
 }

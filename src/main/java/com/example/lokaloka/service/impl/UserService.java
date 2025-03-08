@@ -3,8 +3,10 @@ package com.example.lokaloka.service.impl;
 import com.example.lokaloka.domain.dto.reqdto.ProfileReqDTO;
 import com.example.lokaloka.domain.dto.reqdto.UserReqDTO;
 import com.example.lokaloka.domain.dto.resdto.UserResDTO;
+import com.example.lokaloka.domain.entity.Image;
 import com.example.lokaloka.exception.AppException;
 import com.example.lokaloka.mapper.UserMapper;
+import com.example.lokaloka.repository.IImageRepository;
 import com.example.lokaloka.service.IUserService;
 import com.example.lokaloka.util.ErrorCode;
 import jakarta.transaction.Transactional;
@@ -30,6 +32,9 @@ public class UserService implements IUserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private IImageRepository imageRepository;
+
 
     @Override
     public String checkLoginStatus(Authentication authentication) {
@@ -47,6 +52,13 @@ public class UserService implements IUserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        // Lấy ảnh avatar từ bảng images
+        Image avatar = imageRepository.findByUserIdAndType(user.getId(), "avatar");
+
+        UserResDTO userResDTO = userMapper.toUserResDTO(user);
+        if (avatar != null) {
+            userResDTO.setAvatar(avatar.getContent()); // Gán avatar vào DTO
+        }
         return userMapper.toUserResDTO(user);
     }
 
@@ -71,9 +83,9 @@ public class UserService implements IUserService {
             throw new AppException(ErrorCode.IN_VALID_PHONE_NUMBER);
         }
 
-        if (profileReqDTO.getEmergency_number() != null &&
-                !profileReqDTO.getEmergency_number().isEmpty() &&
-                !profileReqDTO.getEmergency_number().matches("\\d{10}")) {
+        if (profileReqDTO.getEmergency_numbers() != null &&
+                !profileReqDTO.getEmergency_numbers().isEmpty() &&
+                !profileReqDTO.getEmergency_numbers().matches("\\d{10}")) {
             throw new AppException(ErrorCode.IN_VALID_EMERGENCY_NUMBER);
         }
 
@@ -98,8 +110,8 @@ public class UserService implements IUserService {
         }
 
         // ✅ Chỉ cập nhật emergency_number nếu có nhập vào
-        if (profileReqDTO.getEmergency_number() != null) {
-            user.setEmergency_numbers(profileReqDTO.getEmergency_number());
+        if (profileReqDTO.getEmergency_numbers() != null) {
+            user.setEmergency_numbers(profileReqDTO.getEmergency_numbers());
         }
 
         user.setUpdated_at(Timestamp.valueOf(LocalDateTime.now()));

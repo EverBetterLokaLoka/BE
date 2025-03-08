@@ -24,5 +24,6 @@ public class LocationResDTO {
     String recommended_time;
     Double price;
     Long itineraryId;
+    Integer day;
     List<ActivityResDTO> activities;
 }
