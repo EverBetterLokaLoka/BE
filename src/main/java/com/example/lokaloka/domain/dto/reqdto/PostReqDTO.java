@@ -1,19 +1,29 @@
 package com.example.lokaloka.domain.dto.reqdto;
 
-import com.example.lokaloka.domain.entity.User;
 import lombok.*;
-
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.List;
 
-@Getter
-@Setter
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PostReqDTO {
     private Long id;
     private String title;
     private String content;
     private Long user_id;
+    private String userEmail;
+    private String userName;
     private boolean isDestroyed;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private List<CommentReqDTO> comments;
+    private List<LikeReqDTO> likes;
+    private List<ImageReqDTO> images;
+    private int likeCount;
+    private int commentCount;
+    private String avatar;
 }

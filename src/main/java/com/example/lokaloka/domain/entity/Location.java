@@ -33,6 +33,8 @@ public class Location {
     private String recommended_time;
     private Double price;
 
+    private Integer day;
+
     @ManyToOne
     @JoinColumn(name = "itinerary_id", nullable = false)
     private Itinerary itinerary;

@@ -1,10 +1,15 @@
 package com.example.lokaloka.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Getter
@@ -33,20 +38,22 @@ public class Comment {
     private User user;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Timestamp createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ssXXX", timezone = "Asia/Bangkok")
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private Timestamp updatedAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ssXXX", timezone = "Asia/Bangkok")
+    private LocalDateTime  updatedAt;
 
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = new Timestamp(System.currentTimeMillis());
+            createdAt = LocalDateTime.now(ZoneOffset.ofHours(7));
         }
     }
 
     @PreUpdate
     public void preUpdate() {
-        updatedAt = new Timestamp(System.currentTimeMillis());
+        updatedAt = LocalDateTime.now(ZoneOffset.ofHours(7));
     }
 }

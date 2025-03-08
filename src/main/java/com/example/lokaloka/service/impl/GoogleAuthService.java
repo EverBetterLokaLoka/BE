@@ -65,7 +65,7 @@ public class GoogleAuthService {
                     user = userRepository.save(user);
                 }
 
-                String jwtToken = jwtTokenUtil.generateToken(user.getEmail(), user.getFull_name());
+                String jwtToken = jwtTokenUtil.generateToken(user.getEmail(), user.getFull_name(),user.getId().toString());
 
                 return ResponseEntity.ok(
                         ResponseData.builder()
@@ -123,8 +123,8 @@ public class GoogleAuthService {
 
             userRepository.save(newUser);
 
-            // 🔥 Tạo token JWT
-            String token = jwtTokenUtil.generateToken(newUser.getEmail(), newUser.getFull_name());
+            // 🔥 Tạo token JWT và truyền id
+            String token = jwtTokenUtil.generateToken(newUser.getEmail(), newUser.getFull_name(), newUser.getId().toString());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     ResponseData.builder()
@@ -227,7 +227,7 @@ public class GoogleAuthService {
                     .updated_at(user.getUpdated_at())
                     .build();
 
-            String token = jwtTokenUtil.generateToken(user.getEmail(), user.getFull_name());
+            String token = jwtTokenUtil.generateToken(user.getEmail(), user.getFull_name(),user.getId().toString());
 
             return ResponseEntity.ok(
                     ResponseData.builder()

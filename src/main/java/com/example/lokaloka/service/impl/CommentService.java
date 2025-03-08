@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,7 +49,7 @@ public class CommentService implements ICommentService {
                 .post(post)  // Liên kết với post
                 .user(user)
                 .isDestroyed(false)
-                .createdAt(Timestamp.from(Instant.now()))
+                .createdAt(LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()))
                 .build();
 
         // Lưu comment vào database
@@ -77,7 +80,7 @@ public class CommentService implements ICommentService {
 
         // Cập nhật nội dung comment và thời gian cập nhật
         comment.setContent(commentReqDTO.getContent());
-        comment.setUpdatedAt(Timestamp.from(Instant.now()));
+        comment.setUpdatedAt(LocalDateTime.from(Instant.now()));
 
         // Lưu lại comment đã cập nhật vào database
         Comment updatedComment = commentRepository.save(comment);

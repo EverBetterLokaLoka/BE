@@ -23,5 +23,6 @@ public class LocationReqDTO {
     String culture;
     String recommended_time;
     Double price;
+    Integer day;
     List<ActivityReqDTO> activities;
 }

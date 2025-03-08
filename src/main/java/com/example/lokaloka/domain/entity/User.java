@@ -2,6 +2,7 @@ package com.example.lokaloka.domain.entity;
 
 import com.example.lokaloka.domain.enumeration.EGender;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -37,4 +38,8 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Itinerary> itineraries; // Đổi từ Itinerary sang List<Itinerary>
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Image> images;
 }

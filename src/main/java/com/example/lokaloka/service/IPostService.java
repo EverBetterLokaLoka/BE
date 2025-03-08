@@ -8,4 +8,6 @@ public interface IPostService {
     PostReqDTO updatePost(Long id, PostReqDTO postReqDTO);
     void deletePost(Long id);
     List<PostReqDTO> getUserPosts();
+    List<PostReqDTO> getAllPosts();
+
 }

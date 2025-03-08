@@ -1,10 +1,13 @@
 package com.example.lokaloka.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "likes")
@@ -26,5 +29,6 @@ public class Like {
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 
-    Timestamp created_at;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ssXXX", timezone = "Asia/Bangkok")
+    LocalDateTime created_at;
 }

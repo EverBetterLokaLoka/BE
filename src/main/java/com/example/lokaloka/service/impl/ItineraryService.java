@@ -123,6 +123,7 @@ public class ItineraryService implements IItineraryService {
                 location.setCoordinate_x(locationResDTO.getCoordinate_x());
                 location.setCoordinate_y(locationResDTO.getCoordinate_y());
                 location.setTime_reminder(locationResDTO.getTime_reminder());
+                location.setDay(locationResDTO.getDay());
 
                 location.setTime_start(Timestamp.valueOf(locationResDTO.getTime_start().toLocalDateTime()));
                 location.setTime_finish(Timestamp.valueOf(locationResDTO.getTime_finish().toLocalDateTime()));

@@ -29,7 +29,7 @@ public class ProfileReqDTO {
 
     private LocalDate dob;
     @Pattern(regexp = "^(|\\d{10})$", message = "Invalid emergency number.")
-    private String emergency_number;
+    private String emergency_numbers;
 
     private LocalDateTime updatedAt;
 

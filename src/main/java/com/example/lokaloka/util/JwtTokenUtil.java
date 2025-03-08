@@ -25,15 +25,17 @@ public class JwtTokenUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(String email, String fullName) {
+    public String generateToken(String email, String fullName, String id) {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("name", fullName)
+                .claim("id", id)  // Thêm claim "id"
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
+
 
     public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
