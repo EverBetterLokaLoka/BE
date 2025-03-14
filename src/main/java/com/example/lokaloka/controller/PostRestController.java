@@ -6,8 +6,10 @@ import com.example.lokaloka.domain.dto.reqdto.PostReqDTO;
 import com.example.lokaloka.service.ICommentService;
 import com.example.lokaloka.service.ILikeService;
 import com.example.lokaloka.service.IPostService;
+import com.example.lokaloka.util.ApiResponse;
 import com.example.lokaloka.util.ResponseData;
 import com.example.lokaloka.util.SuccessCode;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,10 +36,17 @@ public class PostRestController {
 
     //done
     @PostMapping
-    public ResponseEntity<PostReqDTO> createPost(@RequestBody PostReqDTO postReqDTO) {
-        return ResponseEntity.ok(postService.createPost(postReqDTO));
+    public ResponseEntity<?> createPost(@RequestBody PostReqDTO postReqDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ResponseData.builder()
+                        .success(true)
+                        .status(HttpStatus.CREATED.value())
+                        .message(SuccessCode.CREATED.getMessage())
+                        .data(postService.createPost(postReqDTO))
+                        .build());
     }
     //done
+
     @PutMapping("/{id}")
     public ResponseEntity<PostReqDTO> updatePost(@PathVariable Long id, @RequestBody PostReqDTO postReqDTO) {
         return ResponseEntity.ok(postService.updatePost(id, postReqDTO));
@@ -43,8 +54,8 @@ public class PostRestController {
     //done
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable Long id) {
-        postService.deletePost(id);
-        return ResponseEntity.noContent().build();
+
+        return postService.deletePost(id);
     }
     //done
     @GetMapping
@@ -54,7 +65,19 @@ public class PostRestController {
 
     //done
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<?> addComment(@PathVariable Long postId, @RequestBody CommentReqDTO commentDTO) {
+    public ResponseEntity<?> addComment( @PathVariable Long postId,@Valid @RequestBody CommentReqDTO commentDTO, BindingResult result) {
+        if (result.hasErrors()) {
+            // Lấy lỗi đầu tiên
+            String errorMessage = result.getFieldErrors().get(0).getDefaultMessage();
+
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.builder()
+                            .success(false)
+                            .status(HttpStatus.BAD_REQUEST.value()) // Đúng status
+                            .message(errorMessage) // Chỉ lấy lỗi đầu tiên
+                            .build()
+            );
+        }
         commentDTO.setPostId(postId);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ResponseData.builder()
@@ -72,7 +95,19 @@ public class PostRestController {
     }
     //update comment
     @PutMapping("/{postId}/comments/{commentId}")
-    public ResponseEntity<CommentReqDTO> updateComment(@PathVariable Long postId, @PathVariable Long commentId, @RequestBody CommentReqDTO commentDTO) {
+    public ResponseEntity<?> updateComment(@PathVariable Long postId, @PathVariable Long commentId,@Valid @RequestBody CommentReqDTO commentDTO,BindingResult result) {
+        if (result.hasErrors()) {
+            // Lấy lỗi đầu tiên
+            String errorMessage = result.getFieldErrors().get(0).getDefaultMessage();
+
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.builder()
+                            .success(false)
+                            .status(HttpStatus.BAD_REQUEST.value()) // Đúng status
+                            .message(errorMessage) // Chỉ lấy lỗi đầu tiên
+                            .build()
+            );
+        }
         commentDTO.setPostId(postId);
         return ResponseEntity.ok(commentService.updateComment(commentId,commentDTO));
     }
@@ -85,8 +120,14 @@ public class PostRestController {
 
     //done
     @PostMapping("/{postId}/likes")
-    public ResponseEntity<LikeReqDTO> toggleLike(@PathVariable Long postId) {
-        return ResponseEntity.ok(likeService.toggleLike(postId));
+    public ResponseEntity<?> toggleLike(@PathVariable Long postId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ResponseData.builder()
+                        .success(true)
+                        .status(HttpStatus.CREATED.value())
+                        .data(likeService.toggleLike(postId))
+                        .build()
+        );
     }
 
     @GetMapping("/{postId}/likes")

@@ -17,4 +17,7 @@ public interface IImageRepository extends JpaRepository<Image, Long> {
     @Query("DELETE FROM Image i WHERE i.user.id = :userId AND i.type = :type")
     void deleteByUserIdAndType(@Param("userId") Long userId, @Param("type") String type);
 
+    // Add this method to find images by post ID and a list of image IDs
+    List<Image> findByPostIdAndIdIn(Long postId, List<Long> ids);
+
 }

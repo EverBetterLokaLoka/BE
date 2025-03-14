@@ -1,5 +1,6 @@
 package com.example.lokaloka.domain.dto.resdto;
 
+import com.example.lokaloka.domain.entity.Image;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import java.sql.Timestamp;
@@ -25,5 +26,7 @@ public class LocationResDTO {
     Double price;
     Long itineraryId;
     Integer day;
+    String image;
     List<ActivityResDTO> activities;
+
 }

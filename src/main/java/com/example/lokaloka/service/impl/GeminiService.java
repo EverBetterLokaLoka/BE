@@ -56,7 +56,6 @@ public class GeminiService {
     }
 
     private String createBasePrompt(String userPrompt) {
-        // Cập nhật base prompt sao cho đúng định dạng mà không chứa dấu backtick
         return String.join("\n",
                 "1. The response **must** be in **pure JSON format** with **no extra text**.",
                 "2. **Do NOT include any explanation**, just return the JSON object.",
@@ -65,7 +64,11 @@ public class GeminiService {
                 "5. Ensure all keys have correct closing quotes and no missing commas.",
                 "6. Use **standard JSON syntax** with proper nesting and spacing.",
                 "7. Double-check before sending the response to make sure JSON is valid.",
-                "",
+                "8. Using Asia/Bangkok time zone.",
+                "9. Generate two plans for selection.",
+                "10. **All activities must take place between 07:00 AM and 10:00 PM.**",
+                "11. **Ensure travel time between locations is realistic based on distance and transportation method.**",
+                "12. **Avoid scheduling activities too close together; allow buffer time for travel and breaks.**",
                 userPrompt,
                 "",
                 "Return the result in this exact JSON format:",
@@ -79,6 +82,7 @@ public class GeminiService {
                 "        \"name\": \"Sample Location\",",
                 "        \"day\": 1,",
                 "        \"description\": \"A great place to visit.\",",
+                "        \"image\": \"https://image.png\",",
                 "        \"flag\": false,",
                 "        \"time_start\": \"2025-02-13T08:00:00Z\",",
                 "        \"time_finish\": \"2025-02-13T10:00:00Z\",",
@@ -108,7 +112,7 @@ public class GeminiService {
         config.put("temperature", 0.8); // Giảm temperature để trả về kết quả chính xác hơn
         config.put("topP", 0.85);       // Giảm topP để trả về kết quả ổn định hơn
         config.put("topK", 20);         // Giảm topK để mô hình ít sáng tạo hơn
-        config.put("maxOutputTokens", 15000); // Tăng giới hạn tokens (nếu cần thiết)
+        config.put("maxOutputTokens", 30000); // Tăng giới hạn tokens (nếu cần thiết)
         return config;
     }
 

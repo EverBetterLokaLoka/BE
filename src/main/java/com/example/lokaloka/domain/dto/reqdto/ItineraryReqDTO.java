@@ -19,5 +19,8 @@ public class ItineraryReqDTO {
     Long userId;
     String userName;
     int status;
+    String address;
     List<LocationReqDTO> locations;
+    Timestamp start_date;
+    int init_date;
 }

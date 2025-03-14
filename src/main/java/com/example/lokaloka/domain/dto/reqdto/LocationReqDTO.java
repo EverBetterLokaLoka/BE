@@ -2,6 +2,7 @@ package com.example.lokaloka.domain.dto.reqdto;
 
 import java.util.List;
 
+import com.example.lokaloka.domain.entity.Image;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import java.util.List;
@@ -22,6 +23,7 @@ public class LocationReqDTO {
     String time_finish;
     String culture;
     String recommended_time;
+    String image;
     Double price;
     Integer day;
     List<ActivityReqDTO> activities;

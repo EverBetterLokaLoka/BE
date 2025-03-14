@@ -2,8 +2,10 @@ package com.example.lokaloka.controller;
 
 import com.example.lokaloka.domain.dto.reqdto.FollowerApprovalReqDTO;
 import com.example.lokaloka.domain.dto.reqdto.FollowerReqDTO;
+import com.example.lokaloka.domain.dto.reqdto.UserReqDTO;
 import com.example.lokaloka.domain.dto.resdto.FollowerResDTO;
 import com.example.lokaloka.domain.dto.resdto.FriendResDTO;
+import com.example.lokaloka.domain.dto.resdto.UserResDTO;
 import com.example.lokaloka.service.IFollowerService;
 import com.example.lokaloka.util.ApiResponse;
 import lombok.AccessLevel;
@@ -44,8 +46,8 @@ public class FollowerController {
 
     // Xóa kết bạn
     @DeleteMapping
-    public ResponseEntity<ApiResponse<String>> deleteFriendship(@RequestBody FollowerApprovalReqDTO approvalReqDTO) {
-        ApiResponse<String> response = followerService.removeFriendship(approvalReqDTO);
+    public ResponseEntity<ApiResponse<String>> deleteFriendship(@RequestParam Long friendId) {
+        ApiResponse<String> response = followerService.removeFriendship(friendId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
@@ -60,6 +62,36 @@ public class FollowerController {
     @GetMapping("/requests")
     public ResponseEntity<ApiResponse<List<FriendResDTO>>> getFollowRequests() {
         ApiResponse<List<FriendResDTO>> response = followerService.getFollowRequests();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<FriendResDTO>>> searchUsers(@RequestParam String keyword) {
+        ApiResponse<List<FriendResDTO>> response = followerService.searchUsers(keyword);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @DeleteMapping("/unfriend") // Đường dẫn cho API gỡ kết bạn
+    public ResponseEntity<ApiResponse<String>> unfriend(@RequestParam Long friendId) {
+        ApiResponse<String> response = followerService.removeFriendship(friendId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @GetMapping("/pending-requests")
+    public ResponseEntity<ApiResponse<List<FriendResDTO>>> getPendingRequests() {
+        ApiResponse<List<FriendResDTO>> response = followerService.getPendingRequests();
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @DeleteMapping("/cancel-request/{id}")
+    public ResponseEntity<ApiResponse<String>> cancelFriendRequest(@PathVariable Long id) {
+        ApiResponse<String> response = followerService.cancelFriendRequest(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @DeleteMapping("/cancel-request-send/{id}")
+    public ResponseEntity<ApiResponse<String>> cancelFriendRequestSend(@PathVariable Long id) {
+        ApiResponse<String> response = followerService.cancelFriendRequestSend(id);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

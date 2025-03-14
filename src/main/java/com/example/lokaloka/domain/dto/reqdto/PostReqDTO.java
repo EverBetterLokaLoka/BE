@@ -1,5 +1,6 @@
 package com.example.lokaloka.domain.dto.reqdto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -26,4 +27,5 @@ public class PostReqDTO {
     private int likeCount;
     private int commentCount;
     private String avatar;
+    private List<Long> deleteImageIds;
 }

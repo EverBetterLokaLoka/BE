@@ -17,9 +17,10 @@ CREATE TABLE comment
 (
     id           BIGINT AUTO_INCREMENT NOT NULL,
     content      VARCHAR(255)          NULL,
-    is_destroyed BIT(1)                NOT NULL,
+    is_destroyed BIT(1)                NULL,
     post_id      BIGINT                NOT NULL,
-    created_at   datetime              NULL,
+    user_id      BIGINT                NOT NULL,
+    created_at   datetime              NOT NULL,
     updated_at   datetime              NULL,
     CONSTRAINT pk_comment PRIMARY KEY (id)
 );
@@ -38,12 +39,12 @@ CREATE TABLE emergencies
 
 CREATE TABLE followers
 (
-    id                BIGINT AUTO_INCREMENT NOT NULL,
-    follower_id       BIGINT                NOT NULL,
-    followed_id       BIGINT                NOT NULL,
-    relationship_type BIGINT                NULL,
-    created_at        datetime              NULL,
-    updated_at        datetime              NULL,
+    id              BIGINT AUTO_INCREMENT NOT NULL,
+    follower_id     BIGINT                NOT NULL,
+    followed_id     BIGINT                NOT NULL,
+    relationship_id BIGINT                NOT NULL,
+    created_at      datetime              NULL,
+    updated_at      datetime              NULL,
     CONSTRAINT pk_followers PRIMARY KEY (id)
 );
 
@@ -51,14 +52,15 @@ CREATE TABLE images
 (
     id          BIGINT AUTO_INCREMENT NOT NULL,
     content     VARCHAR(255)          NULL,
-    shares      INT                   NOT NULL,
-    location_id BIGINT                NOT NULL,
-    user_id     BIGINT                NOT NULL,
-    post_id     BIGINT                NOT NULL,
-    map_id      BIGINT                NOT NULL,
-    activity_id BIGINT                NOT NULL,
+    shares      INT                   NULL,
+    location_id BIGINT                NULL,
+    user_id     BIGINT                NULL,
+    post_id     BIGINT                NULL,
+    map_id      BIGINT                NULL,
+    activity_id BIGINT                NULL,
     created_at  datetime              NULL,
     updated_at  datetime              NULL,
+    type        VARCHAR(255)          NULL,
     CONSTRAINT pk_images PRIMARY KEY (id)
 );
 
@@ -72,6 +74,10 @@ CREATE TABLE itineraries
     updated_at    datetime              NULL,
     user_id       BIGINT                NOT NULL,
     status        INT                   NOT NULL,
+    address       VARCHAR(255)          NULL,
+    start_date    datetime              NULL,
+    init_date     INT                   NOT NULL,
+    is_destroyed  BIT(1)                NOT NULL,
     CONSTRAINT pk_itineraries PRIMARY KEY (id)
 );
 
@@ -98,6 +104,7 @@ CREATE TABLE locations
     culture          VARCHAR(255)          NULL,
     recommended_time VARCHAR(255)          NULL,
     price            DOUBLE                NULL,
+    day              INT                   NULL,
     itinerary_id     BIGINT                NOT NULL,
     CONSTRAINT pk_locations PRIMARY KEY (id)
 );
@@ -130,25 +137,35 @@ CREATE TABLE posts
 (
     id           BIGINT AUTO_INCREMENT NOT NULL,
     title        VARCHAR(255)          NULL,
-    content      VARCHAR(255)          NULL,
+    content      LONGTEXT              NULL,
     is_destroyed BIT(1)                NOT NULL,
+    created_at   datetime              NOT NULL,
+    updated_at   datetime              NULL,
     user_id      BIGINT                NOT NULL,
     CONSTRAINT pk_posts PRIMARY KEY (id)
 );
 
+CREATE TABLE relationship_type
+(
+    id        BIGINT AUTO_INCREMENT NOT NULL,
+    type_name VARCHAR(255)          NULL,
+    CONSTRAINT pk_relationshiptype PRIMARY KEY (id)
+);
+
 CREATE TABLE users
 (
-    id         BIGINT AUTO_INCREMENT NOT NULL,
-    email      VARCHAR(255)          NULL,
-    password   VARCHAR(255)          NULL,
-    full_name  VARCHAR(255)          NULL,
-    address    VARCHAR(255)          NULL,
-    phone      VARCHAR(255)          NULL,
-    gender     SMALLINT              NULL,
-    dob        date                  NULL,
-    is_active  BIT(1)                NOT NULL,
-    created_at datetime              NULL,
-    updated_at datetime              NULL,
+    id                BIGINT AUTO_INCREMENT NOT NULL,
+    email             VARCHAR(255)          NULL,
+    password          VARCHAR(255)          NULL,
+    full_name         VARCHAR(255)          NULL,
+    address           VARCHAR(255)          NULL,
+    phone             VARCHAR(255)          NULL,
+    gender            SMALLINT              NULL,
+    dob               date                  NULL,
+    is_active         BIT(1)                NOT NULL,
+    created_at        datetime              NULL,
+    updated_at        datetime              NULL,
+    emergency_numbers VARCHAR(255)          NULL,
     CONSTRAINT pk_users PRIMARY KEY (id)
 );
 
@@ -158,6 +175,9 @@ ALTER TABLE activities
 ALTER TABLE comment
     ADD CONSTRAINT FK_COMMENT_ON_POST FOREIGN KEY (post_id) REFERENCES posts (id);
 
+ALTER TABLE comment
+    ADD CONSTRAINT FK_COMMENT_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
+
 ALTER TABLE emergencies
     ADD CONSTRAINT FK_EMERGENCIES_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
 
@@ -166,6 +186,9 @@ ALTER TABLE followers
 
 ALTER TABLE followers
     ADD CONSTRAINT FK_FOLLOWERS_ON_FOLLOWER FOREIGN KEY (follower_id) REFERENCES users (id);
+
+ALTER TABLE followers
+    ADD CONSTRAINT FK_FOLLOWERS_ON_RELATIONSHIP FOREIGN KEY (relationship_id) REFERENCES relationship_type (id);
 
 ALTER TABLE images
     ADD CONSTRAINT FK_IMAGES_ON_ACTIVITY FOREIGN KEY (activity_id) REFERENCES activities (id);

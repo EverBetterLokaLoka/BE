@@ -21,8 +21,6 @@ public class ProfileReqDTO {
 
     private String address;
 
-    @Pattern(regexp = "^[0-9]+$", message = "The phone number can only contain digits.")
-    @Size(min = 10, max = 10, message = "Invalid phone number.")
     private String phone;
 
     private EGender gender;

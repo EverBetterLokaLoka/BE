@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -57,7 +58,8 @@ public class LikeService implements ILikeService {
             Like newLike = Like.builder()
                     .post(post)
                     .user(user)
-                    .created_at(LocalDateTime.from(Instant.now()))
+                    .created_at(LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()))
+
                     .build();
 
             Like savedLike = likeRepository.save(newLike);
