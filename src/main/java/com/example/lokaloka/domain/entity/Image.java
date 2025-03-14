@@ -1,6 +1,6 @@
 package com.example.lokaloka.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -18,6 +18,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonIgnoreProperties({"location", "images"})
 public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,10 +27,6 @@ public class Image {
     private String content;
 
     private Integer shares;
-
-    @ManyToOne
-    @JoinColumn(name = "location_id", nullable = true)
-    private Location location;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
@@ -56,4 +53,8 @@ public class Image {
     LocalDateTime updated_at;
 
     private String type;
+
+    @ManyToOne
+    @JoinColumn(name = "location_id", nullable = true)
+    private Location location;
 }

@@ -55,14 +55,20 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())  // ✅ Tắt CSRF
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()  // ✅ Mở quyền truy cập cho API auth
+                        .requestMatchers(
+                                "/api/auth/**",        // ✅ Mở quyền truy cập cho API auth
+                                "/swagger-ui/**",      // ✅ Mở Swagger UI
+                                "/v3/api-docs/**",     // ✅ Mở API Docs
+                                "/swagger-ui.html",    // ✅ Mở trang Swagger chính
+                                "/v3/api-docs"         // ✅ Đảm bảo có quyền lấy API Docs
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // ✅ Truyền filter từ bean vào
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
 
 

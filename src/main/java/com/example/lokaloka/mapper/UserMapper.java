@@ -56,7 +56,9 @@ public interface UserMapper {
     // ✅ Mapping từ Location -> LocationResDTO
     @Mapping(target = "activities", source = "activities")
     LocationResDTO toLocationResDTO(Location location);
-
+    default String map(Image image) {
+        return image != null ? image.getContent() : null; // Nếu image không null, trả về content, nếu không thì trả về null
+    }
     // ✅ Mapping từ Activity -> ActivityResDTO
     ActivityResDTO toActivityResDTO(Activity activity);
 

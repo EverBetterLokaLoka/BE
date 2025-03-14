@@ -1,5 +1,6 @@
 package com.example.lokaloka.domain.dto.reqdto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,8 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class CommentReqDTO {
     private Long id;
+
+    @NotBlank(message = "Please enter your content")
     private String content;
     private Long postId;
     private Long userId;

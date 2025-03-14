@@ -136,16 +136,22 @@ public class ItineraryRestController {
                 .data(updatedItinerary)
                 .build());
     }
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateItineraryPatch(@PathVariable Long id, @RequestBody ItineraryResDTO itineraryResDTO) {
+        itineraryResDTO.setId(id);
+        ItineraryResDTO updatedItinerary = itineraryService.updateItinerary(itineraryResDTO);
+        return ResponseEntity.ok(ResponseData.builder()
+                .success(true)
+                .status(SuccessCode.UPDATE_SUCCESSFUL.getCode())
+                .message(SuccessCode.UPDATE_SUCCESSFUL.getMessage())
+                .data(updatedItinerary)
+                .build());
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteItinerary(@PathVariable Long id) {
-        itineraryService.deleteItineraryById(id);
-        return ResponseEntity.ok(ResponseData.builder()
-                .success(true)
-                .status(SuccessCode.DELETE_SUCCESSFUL.getCode())
-                .message(SuccessCode.DELETE_SUCCESSFUL.getMessage())
-                .data(null)
-                .build());
+
+        return itineraryService.deleteItineraryById(id);
     }
 
     private ItineraryResDTO convertMapToItineraryDTO(Map<String, Object> itineraryData) {

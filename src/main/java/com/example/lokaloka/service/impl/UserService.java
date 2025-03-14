@@ -79,9 +79,6 @@ public class UserService implements IUserService {
         }
 
         // ✅ Kiểm tra số điện thoại có đúng 10 chữ số
-        if (profileReqDTO.getPhone() != null && !profileReqDTO.getPhone().matches("\\d{10}")) {
-            throw new AppException(ErrorCode.IN_VALID_PHONE_NUMBER);
-        }
 
         if (profileReqDTO.getEmergency_numbers() != null &&
                 !profileReqDTO.getEmergency_numbers().isEmpty() &&

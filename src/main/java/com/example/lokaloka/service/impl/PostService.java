@@ -4,13 +4,20 @@ import com.example.lokaloka.domain.dto.reqdto.*;
 import com.example.lokaloka.domain.entity.*;
 import com.example.lokaloka.repository.*;
 import com.example.lokaloka.service.IPostService;
+import com.example.lokaloka.util.ResponseData;
+import com.example.lokaloka.util.SuccessCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,49 +29,154 @@ public class PostService implements IPostService {
     private final IUserRepository userRepository;
     private final IImageRepository imageRepository;
 
+//    @Override
+//    public PostReqDTO createPost(PostReqDTO postReqDTO) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String loggedInUserEmail = authentication.getName();
+//
+//        User user = userRepository.findByEmail(loggedInUserEmail)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        Post post = Post.builder()
+//                .title(postReqDTO.getTitle())
+//                .content(postReqDTO.getContent())
+//                .user(user)
+//                .is_destroyed(false)
+//                .comments(new ArrayList<>())
+//                .likes(new ArrayList<>())
+//                .build();
+//
+//        Post savedPost = postRepository.save(post);
+//
+//        return convertToDTO(savedPost);
+//    }
+@Override
+public PostReqDTO createPost(PostReqDTO postReqDTO) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String loggedInUserEmail = authentication.getName();
+
+    User user = userRepository.findByEmail(loggedInUserEmail)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    Post post = Post.builder()
+            .title(postReqDTO.getTitle())
+            .content(postReqDTO.getContent())
+            .user(user)
+            .is_destroyed(false)
+            .comments(new ArrayList<>())
+            .likes(new ArrayList<>())
+            .images(new ArrayList<>()) // Khởi tạo danh sách images
+            .build();
+
+    // Lưu ảnh nếu có
+    if (postReqDTO.getImages() != null) {
+        for (ImageReqDTO imageReq : postReqDTO.getImages()) {
+            Image image = Image.builder()
+                    .user(user)
+                    .content(imageReq.getContent())
+                    .type("post") // Đường dẫn type
+                    .post(post) // Liên kết image với post
+                    .created_at(LocalDateTime.now(ZoneId.of("Asia/Bangkok"))) // Thiết lập thời gian tạo
+                    .build();
+
+            post.getImages().add(image); // Thêm ảnh vào danh sách images của post
+        }
+    }
+
+    Post savedPost = postRepository.save(post);
+    return convertToDTO(savedPost);
+}
+
     @Override
-    public PostReqDTO createPost(PostReqDTO postReqDTO) {
+    @Transactional
+    public PostReqDTO updatePost(Long id, PostReqDTO postReqDTO) {
+        // Find the post to update
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        // Get the current user for security check
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String loggedInUserEmail = authentication.getName();
 
         User user = userRepository.findByEmail(loggedInUserEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Post post = Post.builder()
-                .title(postReqDTO.getTitle())
-                .content(postReqDTO.getContent())
-                .user(user)
-                .is_destroyed(false)
-                .comments(new ArrayList<>())
-                .likes(new ArrayList<>())
-                .build();
+        // Check if the user is the owner of the post
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("You don't have permission to update this post");
+        }
 
-        Post savedPost = postRepository.save(post);
-
-        return convertToDTO(savedPost);
-    }
-
-    @Override
-    public PostReqDTO updatePost(Long id, PostReqDTO postReqDTO) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
-
+        // Update basic post information
         post.setTitle(postReqDTO.getTitle());
         post.setContent(postReqDTO.getContent());
         post.set_destroyed(postReqDTO.isDestroyed());
+        post.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Bangkok")));
 
+        // Handle image deletion if deleteImageIds is provided
+        if (postReqDTO.getDeleteImageIds() != null && !postReqDTO.getDeleteImageIds().isEmpty()) {
+            List<Long> imageIdsToDelete = postReqDTO.getDeleteImageIds();
+
+            // Find images that belong to this post and have IDs in the deletion list
+            List<Image> imagesToDelete = imageRepository.findByPostIdAndIdIn(post.getId(), imageIdsToDelete);
+
+            // Remove these images from the post's image collection
+            post.getImages().removeAll(imagesToDelete);
+
+            // Delete the images from the repository
+            imageRepository.deleteAll(imagesToDelete); // Chắc chắn rằng phương thức xóa hoạt động
+        }
+
+        // Add new images if provided
+        if (postReqDTO.getImages() != null && !postReqDTO.getImages().isEmpty()) {
+            // If post.getImages() is null, initialize it
+            if (post.getImages() == null) {
+                post.setImages(new ArrayList<>());
+            }
+
+            // Create and add new images
+            for (ImageReqDTO imageReq : postReqDTO.getImages()) {
+                Image image = Image.builder()
+                        .user(user)
+                        .content(imageReq.getContent())
+                        .type("post") // Chắc chắn rằng loại ảnh đúng
+                        .post(post)
+                        .created_at(LocalDateTime.now(ZoneId.of("Asia/Bangkok")))
+                        .build();
+                post.getImages().add(image);
+            }
+        }
+
+        // Save the updated post with its images
         Post updatedPost = postRepository.save(post);
 
+        // Convert to DTO and return
         return convertToDTO(updatedPost);
     }
-
     @Override
-    public void deletePost(Long id) {
+    public ResponseEntity<?> deletePost(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+
+        if (post.is_destroyed()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ResponseData.builder()
+                            .success(false)
+                            .status(HttpStatus.BAD_REQUEST.value())
+                            .message("Post have been deleted")
+                            .build());
+        }
+
         post.set_destroyed(true);
         postRepository.save(post);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
+                ResponseData.builder()
+                        .success(true)
+                        .status(HttpStatus.NO_CONTENT.value())
+                        .message("Post delete successfully")
+                        .build());
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -120,8 +232,9 @@ public class PostService implements IPostService {
             }
         }
 
-        // Chuyển đổi sang DTO
+        // Chuyển đổi sang DTO và sắp xếp theo createdAt từ mới nhất đến cũ nhất
         return postMap.values().stream()
+                .sorted(Comparator.comparing(Post::getCreatedAt).reversed()) // Sắp xếp tại đây
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

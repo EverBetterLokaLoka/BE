@@ -80,7 +80,7 @@ public class CommentService implements ICommentService {
 
         // Cập nhật nội dung comment và thời gian cập nhật
         comment.setContent(commentReqDTO.getContent());
-        comment.setUpdatedAt(LocalDateTime.from(Instant.now()));
+        comment.setUpdatedAt(LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
 
         // Lưu lại comment đã cập nhật vào database
         Comment updatedComment = commentRepository.save(comment);

@@ -22,5 +22,10 @@ public class ItineraryResDTO {
     Long userId;
     String userName;
     int status;
+    String address;
     List<LocationResDTO> locations;
+    Timestamp start_date;
+    int init_date;
+
+
 }

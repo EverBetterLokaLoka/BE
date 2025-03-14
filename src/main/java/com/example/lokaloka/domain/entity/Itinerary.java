@@ -35,4 +35,10 @@ public class Itinerary {
     private List<Location> locations;
 
     int status;
+    String address;
+
+    Timestamp start_date;
+    int init_date;
+
+    boolean isDestroyed;
 }

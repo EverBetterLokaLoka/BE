@@ -10,5 +10,5 @@ public interface IItineraryService {
     ItineraryResDTO getItineraryById(Long id);
     ItineraryResDTO createItinerary(ItineraryResDTO itineraryDTO);
     ItineraryResDTO updateItinerary(ItineraryResDTO itinerary);
-    void deleteItineraryById(Long id);
+    ResponseEntity<?> deleteItineraryById(Long id);
 }
