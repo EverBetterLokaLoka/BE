@@ -21,12 +21,16 @@ public class ProfileReqDTO {
 
     private String address;
 
+    @Pattern(regexp = "^(|\\d{10})$", message = "Invalid phone number.")
+    @Pattern(regexp = "^(?!.*[a-zA-Z]).*$", message = "The phone number can only contain digits.")
     private String phone;
+
 
     private EGender gender;
 
     private LocalDate dob;
     @Pattern(regexp = "^(|\\d{10})$", message = "Invalid emergency number.")
+    @Pattern(regexp = "^(?!.*[a-zA-Z]).*$", message = "The emergency number can only contain digits.")
     private String emergency_numbers;
 
     private LocalDateTime updatedAt;

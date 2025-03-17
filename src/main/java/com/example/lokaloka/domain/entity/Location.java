@@ -46,6 +46,7 @@ public class Location {
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Activity> activities;
 
+    @Lob
     String image_url;
 
 

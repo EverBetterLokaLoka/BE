@@ -107,7 +107,7 @@ public class FollowerService implements IFollowerService {
     public ApiResponse<String> approveFriendship(Long followerId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User is not authenticated");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not authenticated");
         }
         String loggedInUserEmail = authentication.getName();
         User user  = userRepository.findByEmail(loggedInUserEmail)
