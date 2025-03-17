@@ -185,15 +185,8 @@ public class ItineraryService implements IItineraryService {
             throw new CustomException(HttpStatus.BAD_REQUEST, "Itinerary title cannot be empty.");
         }
 
-        // Kiểm tra title không được trùng với user hiện tại
-        boolean exists = itineraryRepository.existsByTitleAndUser(itineraryDTO.getTitle(), user);
-        if (exists) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "Itinerary title already exists.");
-        }
-
-        // Tạo đối tượng itinerary mới
+        // Tạo đối tượng itinerary mới mà không có title chứa ID
         Itinerary itinerary = new Itinerary();
-        itinerary.setTitle(itineraryDTO.getTitle());
         itinerary.setDescription(itineraryDTO.getDescription());
         itinerary.setPrice(itineraryDTO.getPrice());
         itinerary.setUser(user);
@@ -203,7 +196,14 @@ public class ItineraryService implements IItineraryService {
         itinerary.setCreated_at(now);
         itinerary.setUpdated_at(now);
         itinerary.setInit_date(itineraryDTO.getInit_date());
+
+        // Lưu đối tượng itinerary đang tạm
         Itinerary savedItinerary = itineraryRepository.save(itinerary);
+
+        // Sửa title bằng cách thêm ID của itinerary vào title
+        String newTitle = itineraryDTO.getTitle() + "_" + savedItinerary.getId();
+        savedItinerary.setTitle(newTitle);
+        itineraryRepository.save(savedItinerary); // Cập nhật lại tiêu đề trong cơ sở dữ liệu
 
         // Xử lý danh sách location
         if (itineraryDTO.getLocations() != null && !itineraryDTO.getLocations().isEmpty()) {
@@ -296,6 +296,27 @@ public class ItineraryService implements IItineraryService {
                         .success(true)
                         .status(HttpStatus.NO_CONTENT.value())
                         .message("Itinerary delete successfully")
+                        .build());
+    }
+    public ResponseEntity<?> updateStartDay(Long id){
+        Itinerary existingItinerary = itineraryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Itinerary not found"));
+
+        if(existingItinerary.isDestroyed()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ResponseData.builder()
+                            .success(false)
+                            .status(HttpStatus.BAD_REQUEST.value())
+                            .message("Itinerary have been deleted")
+                            .build());
+        }
+        existingItinerary.setStart_date(Timestamp.from(Instant.now()));
+        itineraryRepository.save(existingItinerary);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseData.builder()
+                        .success(true)
+                        .status(HttpStatus.OK.value())
+                        .message("Itinerary update successfully")
                         .build());
     }
 }

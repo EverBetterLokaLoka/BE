@@ -105,6 +105,23 @@ public class CommentService implements ICommentService {
     }
     @Override
     public void deleteComment(Long commentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUserEmail = authentication.getName();
+
+        // Lấy user từ database dựa trên email
+        User user = userRepository.findByEmail(loggedInUserEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Tìm kiếm comment theo commentId
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        // Kiểm tra xem người dùng có phải là người đã tạo comment này không
+        if (!comment.getUser().equals(user)) {
+            throw new RuntimeException("You are not authorized to update this comment");
+        }
+
+        commentRepository.deleteById(commentId);
 
     }
 

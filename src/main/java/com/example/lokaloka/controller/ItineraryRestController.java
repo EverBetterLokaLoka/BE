@@ -160,4 +160,8 @@ public class ItineraryRestController {
         // You'll need to implement this based on your specific needs
         return null; // Replace with actual implementation
     }
+    @PutMapping("/start-date/{id}")
+    public ResponseEntity<?> startItinerary(@PathVariable Long id) {
+        return itineraryService.updateStartDay(id);
+    }
 }

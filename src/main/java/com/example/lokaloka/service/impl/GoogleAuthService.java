@@ -85,6 +85,15 @@ public class GoogleAuthService {
 
     public ResponseEntity<?> registerUserWithGoogle(UserReqDTO userReqDTO) {
         try {
+            if (userReqDTO.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                        ApiResponse.builder()
+                                .success(false)
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message("Please enter your email.")
+                                .build()
+                );
+            }
             // 🔥 Kiểm tra password và confirm_password có khớp không
             if (!userReqDTO.getPassword().equals(userReqDTO.getConfirm_password())) {
                 return ResponseEntity.badRequest().body(

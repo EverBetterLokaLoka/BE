@@ -1,6 +1,7 @@
 package com.example.lokaloka.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.core.util.Json;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -47,6 +48,12 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Image> images;
+
+    @Lob
+    private String image_url;
+
+    @Column(name = "schedule_list", columnDefinition = "TEXT") // hoặc một kiểu phù hợp khác
+    private String scheduleList;
 
     @PrePersist
     public void prePersist() {
