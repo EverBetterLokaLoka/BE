@@ -16,7 +16,7 @@ public class ProfileReqDTO {
 
     private  String email;
 
-    @Pattern(regexp = "^[^\\s]+$", message = "Password must not contain spaces.")
+    @Pattern(regexp = "^[^\\s]+$", message = "Please enter your password.")
     private String password;
 
     private String address;
@@ -24,7 +24,6 @@ public class ProfileReqDTO {
     @Pattern(regexp = "^(|\\d{10})$", message = "Invalid phone number.")
     @Pattern(regexp = "^(?!.*[a-zA-Z]).*$", message = "The phone number can only contain digits.")
     private String phone;
-
 
     private EGender gender;
 

@@ -61,6 +61,8 @@ public PostReqDTO createPost(PostReqDTO postReqDTO) {
     Post post = Post.builder()
             .title(postReqDTO.getTitle())
             .content(postReqDTO.getContent())
+            .emotion(postReqDTO.getEmotion())
+            .itinerary_id(postReqDTO.getItineraryId())
             .user(user)
             .is_destroyed(false)
             .comments(new ArrayList<>())
@@ -110,6 +112,8 @@ public PostReqDTO createPost(PostReqDTO postReqDTO) {
         post.setTitle(postReqDTO.getTitle());
         post.setContent(postReqDTO.getContent());
         post.set_destroyed(postReqDTO.isDestroyed());
+        post.setEmotion(postReqDTO.getEmotion());
+        post.setItinerary_id(postReqDTO.getItineraryId());
         post.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Bangkok")));
 
         // Handle image deletion if deleteImageIds is provided
@@ -307,6 +311,8 @@ public PostReqDTO createPost(PostReqDTO postReqDTO) {
                 .images(imageDTOs)  // Chỉ chứa ảnh có type = "post"
                 .likeCount(likeDTOs.size())
                 .commentCount(commentDTOs.size())
+                .emotion(post.getEmotion())
+                .itineraryId(post.getItinerary_id())
                 .build();
     }
 

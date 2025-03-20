@@ -16,8 +16,7 @@ import java.time.LocalDateTime;
 public class UserReqDTO {
     @NotBlank(message = "Please enter your email.")
     @Email(message = "Please enter a valid email address.")
-    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@gmai\\.com$", message = "Please enter a valid email address.")
-    @JsonDeserialize(using = TrimStringDeserializer.class)
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@gmail\\.com$", message = "Please enter a valid email address.")
     private String email;
 
     @NotBlank(message = "Please enter your password.")

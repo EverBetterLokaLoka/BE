@@ -28,4 +28,6 @@ public class PostReqDTO {
     private int commentCount;
     private String avatar;
     private List<Long> deleteImageIds;
+    private Long itineraryId;
+    private String emotion;
 }

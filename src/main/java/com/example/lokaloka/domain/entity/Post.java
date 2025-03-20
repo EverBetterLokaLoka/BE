@@ -50,10 +50,10 @@ public class Post {
     private List<Image> images;
 
     @Lob
-    private String image_url;
+    private String emotion;
 
-    @Column(name = "schedule_list", columnDefinition = "TEXT") // hoặc một kiểu phù hợp khác
-    private String scheduleList;
+
+    private Long itinerary_id;
 
     @PrePersist
     public void prePersist() {

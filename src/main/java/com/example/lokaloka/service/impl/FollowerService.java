@@ -1,7 +1,9 @@
 package com.example.lokaloka.service.impl;
 
+import com.example.lokaloka.controller.NotificationWebSocketController;
 import com.example.lokaloka.domain.dto.reqdto.FollowerApprovalReqDTO;
 import com.example.lokaloka.domain.dto.reqdto.FollowerReqDTO;
+import com.example.lokaloka.domain.dto.reqdto.NotificationReqDTO;
 import com.example.lokaloka.domain.dto.resdto.FollowerResDTO;
 import com.example.lokaloka.domain.dto.resdto.FriendResDTO;
 import com.example.lokaloka.domain.dto.resdto.UserResDTO;
@@ -13,18 +15,25 @@ import com.example.lokaloka.repository.IRelationshipTypeRepository;
 import com.example.lokaloka.repository.IUserRepository;
 import com.example.lokaloka.service.IFollowerService;
 import com.example.lokaloka.util.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.rmi.server.LogStream.log;
+
+@Slf4j
 @Service
 public class FollowerService implements IFollowerService {
 
@@ -36,6 +45,84 @@ public class FollowerService implements IFollowerService {
 
     @Autowired
     private IRelationshipTypeRepository relationshipTypeRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private NotificationWebSocketController notificationWebSocketController; // Thêm vào đây
+
+//    @Override
+//    public ApiResponse<FollowerResDTO> createFriendship(FollowerReqDTO followerReqDTO) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//
+//        if (authentication == null || !authentication.isAuthenticated()) {
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User is not authenticated");
+//        }
+//
+//        String loggedInUserEmail = authentication.getName();
+//
+//        User follower = userRepository.findByEmail(loggedInUserEmail)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+//
+//        User followed = userRepository.findById(followerReqDTO.getFollowedId())
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Followed user not found"));
+//
+//        if (follower.getId().equals(followed.getId())) {
+//            return ApiResponse.<FollowerResDTO>builder()
+//                    .status(400)
+//                    .success(false)
+//                    .message("You cannot follow yourself")
+//                    .build();
+//        }
+//
+//        RelationshipType pendingRelationshipType = relationshipTypeRepository.findByTypeName("Pending")
+//                .orElseThrow(() -> new RuntimeException("Relationship type not found"));
+//
+//        // Kiểm tra mối quan hệ "Friends" giữa follower và followed
+//        List<Follower> existingFriendship1 = followerRepository.findByFollowerAndFollowed(follower, followed);
+//        List<Follower> existingFriendship2 = followerRepository.findByFollowerAndFollowed(followed, follower);
+//
+//        if (!existingFriendship1.isEmpty() || !existingFriendship2.isEmpty()) {
+//            return ApiResponse.<FollowerResDTO>builder()
+//                    .status(400)
+//                    .success(false)
+//                    .message("You are already friends with this user.")
+//                    .build();
+//        }
+//
+//        // Kiểm tra xem đã tồn tại yêu cầu "Pending" không
+//        List<Follower> existingPendingFollowers = followerRepository.findByFollowerAndFollowedAndRelationshipType(follower, followed, pendingRelationshipType);
+//        if (!existingPendingFollowers.isEmpty()) {
+//            return ApiResponse.<FollowerResDTO>builder()
+//                    .status(400)
+//                    .success(false)
+//                    .message("You have already sent a follow request to this user.")
+//                    .build();
+//        }
+//
+//        // Tạo yêu cầu theo dõi mới
+//        Follower followerEntity = new Follower();
+//        followerEntity.setFollower(follower);
+//        followerEntity.setFollowed(followed);
+//        followerEntity.setRelationshipType(pendingRelationshipType);
+//        followerEntity.setCreated_at(new Timestamp(System.currentTimeMillis()));
+//        followerEntity.setUpdated_at(new Timestamp(System.currentTimeMillis()));
+//
+//        Follower savedFollower = followerRepository.save(followerEntity);
+//        messagingTemplate.convertAndSend("/topic/friendship",
+//                "User " + follower.getFull_name() + " sent you a friend request!");
+//
+//        return ApiResponse.<FollowerResDTO>builder()
+//                .status(201)
+//                .success(true)
+//                .data(convertToFollowerResDTO(savedFollower))
+//                .message("Follow request sent successfully")
+//                .build();
+//    }
 
     @Override
     public ApiResponse<FollowerResDTO> createFriendship(FollowerReqDTO followerReqDTO) {
@@ -96,6 +183,32 @@ public class FollowerService implements IFollowerService {
 
         Follower savedFollower = followerRepository.save(followerEntity);
 
+        // 🔹 **Tạo thông báo trong cơ sở dữ liệu trước**
+        String notificationMessage = "User " + follower.getFull_name() + " sent you a friend request.";
+        NotificationReqDTO notificationReqDTO = new NotificationReqDTO(followed.getId(), notificationMessage, follower.getId());
+        notificationService.createNotification(notificationReqDTO);
+
+        // 🔹 **Gửi thông báo qua WebSocket**
+        log.info("📢 Sending WebSocket message to user: " + followed.getId());
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("title", "Friend Request");
+        payload.put("body", notificationMessage);
+        payload.put("senderId", follower.getId());
+        payload.put("type", "FRIEND_REQUEST");
+        payload.put("friendId", savedFollower.getId());
+
+//        messagingTemplate.convertAndSendToUser(
+//                followed.getId().toString(),
+//                "/queue/notifications",
+//                payload
+//        );
+        String destination = String.format("/topic/notifications/%s", followed.getId());
+        messagingTemplate.convertAndSend(destination, payload);
+
+        log.info("✅ Message sent via WebSocket: " + payload);
+
+
         return ApiResponse.<FollowerResDTO>builder()
                 .status(201)
                 .success(true)
@@ -103,6 +216,7 @@ public class FollowerService implements IFollowerService {
                 .message("Follow request sent successfully")
                 .build();
     }
+
     @Override
     public ApiResponse<String> approveFriendship(Long followerId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -132,6 +246,8 @@ public class FollowerService implements IFollowerService {
             follower.setUpdated_at(new Timestamp(System.currentTimeMillis()));
             followerRepository.save(follower);
 
+            messagingTemplate.convertAndSend("/topic/friendship",
+                    "User " + user.getFull_name() + " accepted your friend request!");
             return ApiResponse.<String>builder()
                     .status(200)
                     .success(true)
