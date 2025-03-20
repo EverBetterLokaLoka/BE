@@ -164,4 +164,15 @@ public class ItineraryRestController {
     public ResponseEntity<?> startItinerary(@PathVariable Long id) {
         return itineraryService.updateStartDay(id);
     }
+    // get not authen
+    @GetMapping("/notAuth/{id}")
+    public ResponseEntity<?> getItineraryByNotAuthenticationId(@PathVariable Long id) {
+        ItineraryResDTO itinerary = itineraryService.getItineraryById(id);
+        return ResponseEntity.ok(ResponseData.builder()
+                .success(true)
+                .status(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getCode())
+                .message(SuccessCode.GET_ITINERARIES_SUCCESSFUL.getMessage())
+                .data(itinerary)
+                .build());
+    }
 }

@@ -89,7 +89,7 @@ public class GoogleAuthService {
                 return ResponseEntity.badRequest().body(
                         ApiResponse.builder()
                                 .success(false)
-                                .status(HttpStatus.BAD_REQUEST.value())
+                                .status(HttpStatus.UNAUTHORIZED.value())
                                 .message("Please enter your email.")
                                 .build()
                 );
@@ -154,7 +154,6 @@ public class GoogleAuthService {
         }
     }
 
-
     public ResponseEntity<?> loginUser(LoginReqDTO loginRequest) {
         try {
             // Biểu thức chính quy kiểm tra email hợp lệ
@@ -185,10 +184,10 @@ public class GoogleAuthService {
                 );
             }
             if (!pattern.matcher(loginRequest.getEmail()).matches()) {
-                return ResponseEntity.badRequest().body(
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                         ApiResponse.builder()
                                 .success(false)
-                                .status(HttpStatus.BAD_REQUEST.value())
+                                .status(HttpStatus.UNAUTHORIZED.value())
                                 .message("Please enter a valid email address.")
                                 .build()
                 );

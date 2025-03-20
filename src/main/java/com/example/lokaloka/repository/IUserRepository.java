@@ -12,6 +12,7 @@ import java.util.Optional;
 
 
 public interface IUserRepository extends JpaRepository<User, Long> {
+
     Optional<User> findByEmail(String email);
     @Query("SELECT u FROM User u WHERE LOWER(u.full_name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<User> searchByFullName(@Param("keyword") String keyword);
