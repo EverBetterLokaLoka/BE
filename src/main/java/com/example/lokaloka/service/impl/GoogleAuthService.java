@@ -123,7 +123,7 @@ public class GoogleAuthService {
                     .full_name(userReqDTO.getFull_name())
                     .address(userReqDTO.getAddress())
                     .phone(userReqDTO.getPhone())
-                    .gender(userReqDTO.getGender() != null ? userReqDTO.getGender() : EGender.OTHER)
+                    .gender(userReqDTO.getGender() != null ? userReqDTO.getGender() : EGender.Other)
                     .dob(userReqDTO.getDob())
                     .is_active(true)
                     .created_at(Timestamp.valueOf(LocalDateTime.now()))

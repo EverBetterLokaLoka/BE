@@ -1,26 +1,29 @@
-# Use Gradle with JDK 23
-FROM eclipse-temurin:23-jdk as build
-
-# Set working directory
+# Build stage
+FROM gradle:7.6.1-jdk17 AS build
 WORKDIR /app
 
-# Copy toàn bộ source code vào container
-COPY . .
+# Increase memory available to Gradle
+ENV GRADLE_OPTS="-Dorg.gradle.jvmargs=-Xmx2g -Dorg.gradle.daemon=false"
 
-# Build ứng dụng với Gradle
-RUN ./gradlew clean build -x test
+# Copy gradle configuration files first for better layer caching
+COPY gradle/ gradle/
+COPY gradlew build.gradle settings.gradle ./
 
-# Stage chạy ứng dụng
-FROM eclipse-temurin:17-jre
+# Give execution permission to gradlew
+RUN chmod +x ./gradlew
 
-# Đặt thư mục làm việc trong container
+# Run a gradle task to download dependencies
+RUN ./gradlew dependencies --no-daemon || return 0
+
+# Copy source code
+COPY src/ src/
+
+# Build the application
+RUN ./gradlew clean build --refresh-dependencies --no-daemon -x test
+
+# Run stage
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-
-# Copy file JAR từ giai đoạn build
 COPY --from=build /app/build/libs/*.jar app.jar
-
-# Expose port ứng dụng (thay thế 8080 bằng port của bạn nếu khác)
 EXPOSE 8080
-
-# Chạy ứng dụng
 ENTRYPOINT ["java", "-jar", "app.jar"]
