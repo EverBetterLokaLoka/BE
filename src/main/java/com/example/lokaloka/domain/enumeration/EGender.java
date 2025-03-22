@@ -8,8 +8,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public enum EGender {
-    MALE("Male"),
-    FEMALE("Female"),
-    OTHER("Other");
+    Male("Male"),
+    Female("Female"),
+    Other("Other");
     String name;
 }
